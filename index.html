@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FAF9F6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TraceAI">
+<title>TraceAI — Asystent Traseologiczny</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg:       #FAF9F6;
+  --card:     #FFFFFF;
+  --yellow:   #F5D76E;
+  --blue:     #A8C8F0;
+  --green:    #9FD4A3;
+  --pink:     #F5A8C8;
+  --lavender: #C8A8F0;
+  --text:     #1A1A1A;
+  --text2:    #6B6B6B;
+  --text3:    #ABABAB;
+  --border:   #EBEBEB;
+  --accent:   #1A1A1A;
+  --r-lg:     24px;
+  --r-xl:     32px;
+  --r-pill:   100px;
+  --sans:     'DM Sans', sans-serif;
+  --serif:    'DM Serif Display', serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; flex-direction: column; height: 100%; }
+.screen.active { display: flex; }
+
+/* ── HEADER ── */
+.topbar {
+  padding: 56px 24px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.topbar-title {
+  font-family: var(--serif);
+  font-size: 28px;
+  color: var(--text);
+}
+
+.topbar-sub {
+  font-size: 13px;
+  color: var(--text2);
+  margin-top: 2px;
+}
+
+.avatar-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── SCORE RING ── */
+.score-section {
+  padding: 8px 24px 20px;
+  flex-shrink: 0;
+}
+
+.score-card {
+  background: var(--card);
+  border-radius: var(--r-xl);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border: 1px solid var(--border);
+}
+
+.ring-wrap {
+  position: relative;
+  width: 90px; height: 90px;
+  flex-shrink: 0;
+}
+
+.ring-wrap svg { transform: rotate(-90deg); }
+
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring-num {
+  font-family: var(--serif);
+  font-size: 26px;
+  line-height: 1;
+}
+
+.ring-label {
+  font-size: 9px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.score-info { flex: 1; }
+.score-info h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.score-info p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+.score-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  border: none;
+}
+
+.tag-yellow { background: var(--yellow); color: #7A6200; }
+.tag-blue   { background: var(--blue);   color: #1A4A7A; }
+.tag-green  { background: var(--green);  color: #1A5A1F; }
+.tag-pink   { background: var(--pink);   color: #7A1A40; }
+
+/* ── QUICK ACTIONS ── */
+.section-header {
+  padding: 0 24px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.section-header h2 { font-size: 17px; font-weight: 600; }
+.section-header span { font-size: 13px; color: var(--text2); }
+
+.actions-row {
+  padding: 0 24px;
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 14px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.action-btn:active { transform: scale(0.96); }
+
+.action-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.action-btn span { font-size: 12px; font-weight: 500; color: var(--text); }
+
+/* ── ASSISTANT BANNER ── */
+.assistant-banner {
+  margin: 16px 24px 0;
+  background: var(--pink);
+  border-radius: var(--r-lg);
+  padding: 16px 18px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.assistant-banner::after {
+  content: '🦶';
+  position: absolute;
+  right: 16px;
+  bottom: -4px;
+  font-size: 52px;
+  opacity: 0.25;
+}
+
+.banner-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7A1A40;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.banner-text {
+  font-size: 14px;
+  color: #4A0A25;
+  line-height: 1.5;
+  max-width: 80%;
+}
+
+.banner-btn {
+  margin-top: 10px;
+  background: #4A0A25;
+  color: #fff;
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+
+/* ── RECENT ── */
+.recent-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 24px;
+}
+
+.recent-scroll::-webkit-scrollbar { display: none; }
+
+.recent-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.recent-item:active { transform: scale(0.98); }
+
+.recent-dot {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.recent-info { flex: 1; min-width: 0; }
+.recent-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-info p  { font-size: 12px; color: var(--text2); }
+
+.recent-score {
+  font-family: var(--serif);
+  font-size: 20px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 16px;
+  font-family: var(--sans);
+}
+
+.nav-btn .nav-icon { font-size: 22px; }
+.nav-btn .nav-label { font-size: 10px; color: var(--text3); }
+.nav-btn.active .nav-label { color: var(--text); font-weight: 600; }
+
+.nav-center-btn {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--text);
+  border: none;
+  color: #fff;
+  font-size: 26px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: -16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  transition: transform 0.15s;
+}
+
+.nav-center-btn:active { transform: scale(0.93); }
+
+/* ══════════════════════════════════════
+   SCAN SCREEN
+══════════════════════════════════════ */
+#screen-scan .topbar { padding-bottom: 8px; }
+
+.back-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--sans);
+  display: flex; align-items: center; gap: 6px;
+}
+
+.upload-zone {
+  margin: 8px 24px 16px;
+  background: var(--card);
+  border: 2px dashed var(--border);
+  border-radius: var(--r-xl);
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-zone.has-image { border-style: solid; border-color: var(--green); }
+.upload-zone:active { background: #F0F0EC; }
+
+.upload-zone input { display: none; }
+
+.upload-preview {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 16px;
+  display: none;
+}
+
+.upload-preview.visible { display: block; }
+
+.upload-placeholder { }
+.upload-placeholder .upload-emoji { font-size: 40px; margin-bottom: 8px; }
+.upload-placeholder p { font-size: 14px; color: var(--text2); }
+.upload-placeholder span { font-size: 12px; color: var(--text3); }
+
+.upload-placeholder.hidden { display: none; }
+
+.quick-prompts {
+  padding: 0 24px 12px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+.quick-prompts::-webkit-scrollbar { display: none; }
+
+.qpill {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: var(--sans);
+  color: var(--text);
+  transition: background 0.15s;
+}
+
+.qpill:active { background: var(--yellow); border-color: var(--yellow); }
+
+/* RESULT CARD */
+.result-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 24px 24px;
+}
+.result-scroll::-webkit-scrollbar { display: none; }
+
+.result-card {
+  background: var(--card);
+  border-radius: var(--r-xl);
+  border: 1px solid var(--border);
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.result-card h3 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text2);
+  margin-bottom: 8px;
+}
+
+.result-card p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.verdict-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.verdict-score {
+  font-family: var(--serif);
+  font-size: 48px;
+  line-height: 1;
+}
+
+.verdict-info { flex: 1; }
+.verdict-info h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.verdict-info p  { font-size: 13px; color: var(--text2); }
+
+.verdict-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.badge-high   { background: var(--green); color: #1A5A1F; }
+.badge-medium { background: var(--yellow); color: #7A6200; }
+.badge-low    { background: var(--pink); color: #7A1A40; }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.feature-item {
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.feature-item .fi-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.feature-item .fi-val   { font-size: 14px; font-weight: 600; }
+
+/* INPUT BAR */
+.input-bar {
+  padding: 12px 24px max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-shrink: 0;
+  background: var(--bg);
+}
+
+.input-wrap {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 16px;
+  gap: 8px;
+}
+
+#msg-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  resize: none;
+  max-height: 80px;
+  line-height: 1.4;
+}
+
+#msg-input::placeholder { color: var(--text3); }
+
+.cam-btn {
+  background: var(--yellow);
+  border: none;
+  border-radius: 50%;
+  width: 36px; height: 36px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+.cam-btn:active { transform: scale(0.92); }
+
+.send-btn {
+  background: var(--text);
+  border: none;
+  border-radius: 50%;
+  width: 46px; height: 46px;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s, opacity 0.2s;
+}
+
+.send-btn:disabled { opacity: 0.3; }
+.send-btn:active { transform: scale(0.93); }
+
+/* TYPING */
+.typing-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.typing-dots { display: flex; gap: 5px; }
+.typing-dots span {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text3);
+  animation: tdot 1.2s infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes tdot {
+  0%, 60%, 100% { transform: translateY(0); background: var(--text3); }
+  30% { transform: translateY(-6px); background: var(--text); }
+}
+
+.typing-label { font-size: 13px; color: var(--text2); }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 200;
+  padding: 0;
+}
+
+.modal-sheet {
+  background: var(--card);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  padding: 24px 24px max(32px, env(safe-area-inset-bottom));
+  width: 100%;
+  max-width: 430px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.sheet-handle {
+  width: 40px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.modal-sheet h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+.modal-sheet p  { font-size: 14px; color: var(--text2); line-height: 1.5; margin-bottom: 20px; }
+.modal-sheet a  { color: var(--text); font-weight: 600; }
+
+.modal-sheet input {
+  width: 100%;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: var(--sans);
+  color: var(--text);
+  outline: none;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+
+.modal-sheet input:focus { border-color: var(--text); }
+
+.sheet-submit {
+  width: 100%;
+  background: var(--text);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.sheet-submit:active { opacity: 0.8; }
+</style>
+</head>
+<body>
+
+<div class="screen active" id="screen-home">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">TraceAI</div>
+      <div class="topbar-sub">Asystent traseologiczny</div>
+    </div>
+    <button class="avatar-btn">👤</button>
+  </div>
+
+  <div class="score-section">
+    <div class="score-card">
+      <div class="ring-wrap">
+        <svg width="90" height="90" viewBox="0 0 90 90">
+          <circle cx="45" cy="45" r="36" fill="none" stroke="#EBEBEB" stroke-width="8"/>
+          <circle cx="45" cy="45" r="36" fill="none" stroke="#F5D76E" stroke-width="8"
+            stroke-dasharray="226" stroke-dashoffset="80" stroke-linecap="round"/>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-num" id="home-count">0</span>
+          <span class="ring-label">analiz</span>
+        </div>
+      </div>
+      <div class="score-info">
+        <h3>Gotowy do pracy</h3>
+        <p>Sfotografuj ślad i uzyskaj profesjonalną analizę w terenie.</p>
+        <div class="score-tags">
+          <span class="tag tag-yellow">obuwia</span>
+          <span class="tag tag-blue">opon</span>
+          <span class="tag tag-green">porównanie</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <h2>Szybkie akcje</h2>
+  </div>
+
+  <div class="actions-row">
+    <button class="action-btn" onclick="goScan('Przeanalizuj ślad')">
+      <div class="action-icon" style="background: #FEF3C7;">📷</div>
+      <span>Skanuj</span>
+    </button>
+    <button class="action-btn" onclick="goScan('Porównaj dwa ślady')">
+      <div class="action-icon" style="background: #DBEAFE;">🔍</div>
+      <span>Porównaj</span>
+    </button>
+    <button class="action-btn" onclick="goScan('Opisz ślad do protokołu')">
+      <div class="action-icon" style="background: #D1FAE5;">📋</div>
+      <span>Protokół</span>
+    </button>
+    <button class="action-btn" onclick="goScan('Jak zabezpieczyć ten ślad?')">
+      <div class="action-icon" style="background: #FCE7F3;">🧪</div>
+      <span>Zabezpiecz</span>
+    </button>
+  </div>
+
+  <div class="assistant-banner" id="banner">
+    <div class="banner-label">Asystent AI</div>
+    <div class="banner-text">Wgraj zdjęcie śladu, żeby rozpocząć analizę kryminalistyczną.</div>
+    <button class="banner-btn" onclick="goScan('')">Rozpocznij analizę</button>
+  </div>
+
+  <div class="section-header" style="margin-top: 16px;">
+    <h2>Ostatnie analizy</h2>
+    <span id="recent-count">0 wyników</span>
+  </div>
+
+  <div class="recent-scroll" id="recent-list">
+    <div style="text-align:center; padding: 32px 0; color: var(--text3); font-size: 14px;">
+      Brak analiz — zacznij od przycisku poniżej
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn active">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-btn" onclick="goScan('')">
+      <span class="nav-icon">📷</span>
+      <span class="nav-label">Skanuj</span>
+    </button>
+    <button class="nav-center-btn" onclick="goScan('')">+</button>
+    <button class="nav-btn">
+      <span class="nav-icon">📁</span>
+      <span class="nav-label">Historia</span>
+    </button>
+    <button class="nav-btn">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Ustawienia</span>
+    </button>
+  </div>
+</div>
+
+<div class="screen" id="screen-scan">
+
+  <div class="topbar">
+    <button class="back-btn" onclick="goHome()">← Wróć</button>
+    <div style="font-weight:600; font-size:15px;">Analiza śladu</div>
+    <div style="width:64px;"></div>
+  </div>
+
+  <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+    <input type="file" id="file-input" accept="image/*" capture="environment" onchange="wgrajZdjecie(event)">
+    <img id="img-preview" class="upload-preview" alt="podgląd">
+    <div class="upload-placeholder" id="upload-placeholder">
+      <div class="upload-emoji">📷</div>
+      <p>Dotknij aby zrobić zdjęcie śladu</p>
+      <span>lub wgraj z galerii</span>
+    </div>
+  </div>
+
+  <div class="quick-prompts">
+    <button class="qpill" onclick="quickSend('Przeanalizuj szczegółowo ten ślad traseologiczny.')">🔍 Analiza</button>
+    <button class="qpill" onclick="quickSend('Jaka jest wartość dowodowa tego śladu?')">⚖️ Wartość dowodowa</button>
+    <button class="qpill" onclick="quickSend('Opisz ślad do protokołu z oględzin miejsca zdarzenia.')">📋 Do protokołu</button>
+    <button class="qpill" onclick="quickSend('Jak prawidłowo zabezpieczyć ten ślad?')">🧪 Zabezpieczenie</button>
+    <button class="qpill" onclick="quickSend('Czy widać cechy indywidualne pozwalające na identyfikację obuwia?')">🎯 Cechy indyw.</button>
+  </div>
+
+  <div class="result-scroll" id="result-area">
+    <div style="text-align:center; padding: 16px 0 8px; color: var(--text3); font-size: 13px;">
+      Wgraj zdjęcie i zadaj pytanie
+    </div>
+  </div>
+
+  <div class="input-bar">
+    <div class="input-wrap">
+      <button class="cam-btn" onclick="document.getElementById('file-input').click()">📷</button>
+      <textarea id="msg-input" placeholder="Opisz ślad lub zadaj pytanie..." rows="1"
+        oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+    </div>
+    <button class="send-btn" id="send-btn" onclick="wyslij()">▶</button>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────
+let API_KEY = 'AIzaSyBxFP-zCTBcryQmRx1FixQ91tbtve5T_18'; // Wpisz tutaj swój bezpłatny klucz z aistudio.google.com
+
+// Ustawienie modelu (Gemini 1.5 Flash - najstabilniejsza wersja)
+const MODEL = 'gemini-2.5-flash';
+
+const SYSTEM_PROMPT = `Jesteś rygorystycznym ekspertem kryminalistycznym specjalizującym się WYŁĄCZNIE w analizie śladów traseologicznych (ślady obuwia, ślady opon, ślady bosych stóp).
+
+ZASADY BEZWZGLĘDNE — ZAWSZE przestrzegaj:
+1. Analizuj TYLKO to co rzeczywiście widzisz na zdjęciu. NIGDY nie zmyślaj cech których nie widać.
+2. Jeśli zdjęcie jest złej jakości, niewyraźne lub ślad jest słabo widoczny — POWIEDZ TO WPROST na początku odpowiedzi.
+3. Jeśli na zdjęciu NIE MA śladu traseologicznego — odmów analizy i wyjaśnij co widzisz.
+4. Każdą ocenę której nie jesteś pewien oznacz słowem "prawdopodobnie" lub "możliwe że".
+5. NIGDY nie podawaj konkretnych pomiarów w cm jeśli na zdjęciu nie ma skali porównawczej.
+6. NIGDY nie identyfikuj konkretnego modelu/marki obuwia chyba że logo jest wyraźnie widoczne.
+7. Wartość dowodową określaj KONSERWATYWNIE — lepiej zaniżyć niż zawyżyć.
+
+Formatuj odpowiedź profesjonalnie, używając punktów.`;
+
+// ── STATE ─────────────────────────────────────────
+let zdjecieB64 = null;
+let zdjecieMime = null;
+let czeka = false;
+let analizyCount = 0;
+let historia = [];
+
+// ── INIT ──────────────────────────────────────────
+window.onload = () => {
+};
+
+// ── NAWIGACJA ─────────────────────────────────────
+function goScan(prefill) {
+  document.getElementById('screen-home').classList.remove('active');
+  document.getElementById('screen-scan').classList.add('active');
+  if (prefill) {
+    document.getElementById('msg-input').value = prefill;
+    autoResize(document.getElementById('msg-input'));
+  }
+}
+
+function goHome() {
+  document.getElementById('screen-scan').classList.remove('active');
+  document.getElementById('screen-home').classList.add('active');
+}
+
+// ── ZDJĘCIE ───────────────────────────────────────
+function wgrajZdjecie(e) {
+  const plik = e.target.files[0];
+  if (!plik) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const url = ev.target.result;
+    zdjecieB64 = url.split(',')[1];
+    zdjecieMime = plik.type;
+    const prev = document.getElementById('img-preview');
+    prev.src = url;
+    prev.classList.add('visible');
+    document.getElementById('upload-placeholder').classList.add('hidden');
+    document.getElementById('upload-zone').classList.add('has-image');
+  };
+  reader.readAsDataURL(plik);
+}
+
+// ── RENDER RESULTS ────────────────────────────────
+function renderWiadomosc(tekst, rola) {
+  const area = document.getElementById('result-area');
+
+  if (rola === 'user') {
+    const d = document.createElement('div');
+    d.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:10px;';
+    d.innerHTML = `<div style="background:var(--text);color:#fff;border-radius:20px 20px 4px 20px;padding:10px 16px;font-size:14px;max-width:80%;line-height:1.5;">${tekst}</div>`;
+    area.appendChild(d);
+  } else {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+
+    const formatted = tekst
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+
+    card.innerHTML = `<h3>Analiza AI</h3><p>${formatted}</p>`;
+    area.appendChild(card);
+
+    analizyCount++;
+    document.getElementById('home-count').textContent = analizyCount;
+    dodajDoHistorii(tekst);
+  }
+
+  area.scrollTop = area.scrollHeight;
+}
+
+function dodajTyping() {
+  const area = document.getElementById('result-area');
+  const d = document.createElement('div');
+  d.className = 'typing-card';
+  d.id = 'typing';
+  d.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div><span class="typing-label">Analizuję ślad...</span>`;
+  area.appendChild(d);
+  area.scrollTop = area.scrollHeight;
+}
+
+function usunTyping() {
+  const el = document.getElementById('typing');
+  if (el) el.remove();
+}
+
+function dodajDoHistorii(tekst) {
+  const lista = document.getElementById('recent-list');
+  if (lista.querySelector('div[style]')) lista.innerHTML = '';
+
+  const skrot = tekst.replace(/\*\*/g, '').substring(0, 50) + '...';
+  const item = document.createElement('div');
+  item.className = 'recent-item';
+  item.innerHTML = `
+    <div class="recent-dot" style="background:#FEF3C7">👟</div>
+    <div class="recent-info">
+      <h4>Analiza #${analizyCount}</h4>
+      <p>${skrot}</p>
+    </div>
+    <div class="recent-score">${analizyCount}</div>`;
+  lista.insertBefore(item, lista.firstChild);
+  document.getElementById('recent-count').textContent = `${analizyCount} wyników`;
+}
+
+// ── WYSYŁANIE ─────────────────────────────────────
+function quickSend(t) {
+  document.getElementById('msg-input').value = t;
+  wyslij();
+}
+
+async function wyslij() {
+  if (czeka) return;
+  const input = document.getElementById('msg-input');
+  const tekst = input.value.trim();
+  
+  if (!tekst && !zdjecieB64) return;
+
+  renderWiadomosc(tekst || '[zdjęcie]', 'user');
+  input.value = '';
+  autoResize(input);
+
+  const tmpB64 = zdjecieB64;
+  const tmpMime = zdjecieMime;
+
+  czeka = true;
+  document.getElementById('send-btn').disabled = true;
+  dodajTyping();
+
+  // POPRAWIONA KONSTRUKCJA PARTS (camelCase: inlineData, mimeType)
+  const parts = [];
+  if (tekst) parts.push({ text: tekst });
+  if (tmpB64) {
+    parts.push({ 
+      inlineData: { 
+        mimeType: tmpMime, 
+        data: tmpB64 
+      } 
+    });
+  }
+
+  const msgs = historia.slice(-4).concat([{ role: 'user', parts }]);
+
+  if (historia.length === 0) {
+    msgs[0].parts = [{ text: SYSTEM_PROMPT + '\n\n' + (tekst || 'Analizuj zdjęcie.') }, ...msgs[0].parts.filter(p => p.text !== tekst)];
+    // Jeśli jest zdjęcie, musimy je zachować w parts
+    if (tmpB64) {
+        msgs[0].parts = [
+            { text: SYSTEM_PROMPT + '\n\n' + (tekst || 'Analizuj zdjęcie.') },
+            { inlineData: { mimeType: tmpMime, data: tmpB64 } }
+        ];
+    }
+  }
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/${MODEL}:generateContent?key=${API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: msgs,
+          generationConfig: { maxOutputTokens: 4000, temperature: 0.1 }
+        })
+      }
+    );
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const odpowiedz = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Brak odpowiedzi.';
+
+    historia.push({ role: 'user', parts });
+    historia.push({ role: 'model', parts: [{ text: odpowiedz }] });
+
+    usunTyping();
+    renderWiadomosc(odpowiedz, 'ai');
+
+    // Czyścimy zdjęcie po pomyślnej analizie
+    zdjecieB64 = null;
+    zdjecieMime = null;
+    document.getElementById('img-preview').classList.remove('visible');
+    document.getElementById('upload-placeholder').classList.remove('hidden');
+    document.getElementById('upload-zone').classList.remove('has-image');
+
+  } catch (err) {
+    usunTyping();
+    console.error(err);
+    renderWiadomosc(`⚠️ Błąd: ${err.message}`, 'ai');
+  }
+
+  czeka = false;
+  document.getElementById('send-btn').disabled = false;
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); wyslij(); }
+}
+</script>
+</body>
+</html>

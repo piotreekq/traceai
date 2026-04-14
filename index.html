@@ -504,7 +504,7 @@ body {
   padding: 12px 24px max(16px, env(safe-area-inset-bottom));
   display: flex;
   gap: 10px;
-  align-items: flex-end;
+  align-items: center;
   flex-shrink: 0;
   background: var(--bg);
 }
@@ -515,9 +515,10 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--r-pill);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   padding: 10px 16px;
   gap: 8px;
+  min-height: 42px;
 }
 
 #msg-input {
@@ -552,14 +553,15 @@ body {
   background: var(--text);
   border: none;
   border-radius: 50%;
-  width: 46px; height: 46px;
+  width: 42px; height: 42px;
   color: #fff;
-  font-size: 20px;
+  padding: 0;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   transition: transform 0.15s, opacity 0.2s;
 }
+.send-btn svg { width: 20px; height: 20px; }
 
 .send-btn:disabled { opacity: 0.3; }
 .send-btn:active { transform: scale(0.93); }
@@ -813,7 +815,9 @@ body {
       <textarea id="msg-input" placeholder="Opisz ślad lub zadaj pytanie..." rows="1"
         oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
     </div>
-    <button class="send-btn" id="send-btn" onclick="wyslij()">▶</button>
+    <button class="send-btn" id="send-btn" onclick="wyslij()">
+      <i data-lucide="arrow-up"></i>
+    </button>
   </div>
 </div>
 

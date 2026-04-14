@@ -648,6 +648,17 @@ body {
 </head>
 <body>
 
+<div class="modal-overlay" id="modal">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <h2>Witaj w TraceAI 🦶</h2>
+    <p>Podaj klucz API Google Gemini żeby uruchomić asystenta.<br>
+    Darmowy klucz na <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> → Get API Key.</p>
+    <input type="password" id="api-key-input" placeholder="AIza..." autocomplete="off">
+    <button class="sheet-submit" onclick="zapiszKlucz()">Uruchom asystenta</button>
+  </div>
+</div>
+
 <div class="screen active" id="screen-home">
 
   <div class="topbar">
@@ -788,9 +799,9 @@ body {
 
 <script>
 // ── CONFIG ────────────────────────────────────────
-let API_KEY = 'AIzaSyBxFP-zCTBcryQmRx1FixQ91tbtve5T_18'; // Wpisz tutaj swój bezpłatny klucz z aistudio.google.com
+let API_KEY = localStorage.getItem('traceai_key') || ''; // Klucz pobierany z bezpiecznej pamięci przeglądarki
 
-// Ustawienie modelu (Gemini 1.5 Flash - najstabilniejsza wersja)
+// Ustawienie modelu (Gemini 2.5 Flash - działa u użytkownika)
 const MODEL = 'gemini-2.5-flash';
 
 const SYSTEM_PROMPT = `Jesteś rygorystycznym ekspertem kryminalistycznym specjalizującym się WYŁĄCZNIE w analizie śladów traseologicznych (ślady obuwia, ślady opon, ślady bosych stóp).
@@ -815,7 +826,20 @@ let historia = [];
 
 // ── INIT ──────────────────────────────────────────
 window.onload = () => {
+  if (API_KEY) ukryjModal();
 };
+
+function zapiszKlucz() {
+  const k = document.getElementById('api-key-input').value.trim();
+  if (!k.startsWith('AIza')) { alert('Nieprawidłowy klucz API.'); return; }
+  API_KEY = k;
+  localStorage.setItem('traceai_key', k);
+  ukryjModal();
+}
+
+function ukryjModal() {
+  document.getElementById('modal').style.display = 'none';
+}
 
 // ── NAWIGACJA ─────────────────────────────────────
 function goScan(prefill) {
@@ -923,6 +947,7 @@ async function wyslij() {
   const tekst = input.value.trim();
   
   if (!tekst && !zdjecieB64) return;
+  if (!API_KEY) { document.getElementById('modal').style.display = 'flex'; return; }
 
   renderWiadomosc(tekst || '[zdjęcie]', 'user');
   input.value = '';

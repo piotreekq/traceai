@@ -311,11 +311,13 @@ body {
 .bottom-nav {
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(250, 249, 246, 0.6);
-  backdrop-filter: url(#liquid-glass-filter) blur(20px) saturate(180%);
-  -webkit-backdrop-filter: url(#liquid-glass-filter) blur(20px) saturate(180%);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: rgba(250, 249, 246, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-top: 1px solid rgba(0, 0, 0, 0.08);
   padding: 12px 0 max(12px, env(safe-area-inset-bottom));
   display: flex;
@@ -335,6 +337,7 @@ body {
   gap: 4px;
   padding: 4px 16px;
   font-family: var(--sans);
+  color: var(--text);
 }
 
 .nav-btn .nav-icon { 
@@ -342,8 +345,9 @@ body {
   display: flex; 
   align-items: center; 
   justify-content: center;
+  color: var(--text);
 }
-.nav-btn .nav-icon svg { width: 24px; height: 24px; }
+.nav-btn .nav-icon svg { width: 24px; height: 24px; stroke: var(--text); }
 .nav-btn.active .nav-label { color: var(--text); font-weight: 600; }
 
 .nav-center-btn {
@@ -864,16 +868,6 @@ body {
   </div>
 </div>
 
-<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position: absolute; overflow: hidden" color-interpolation-filters="sRGB">
-  <defs id="liquid-glass-defs">
-    <filter id="liquid-glass-filter" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="0.3" result="blurred" />
-      <feImage id="liquid-glass-map" href="" x="0" y="0" width="100%" height="100%" result="map" />
-      <feDisplacementMap in="blurred" in2="map" scale="20" xChannelSelector="R" yChannelSelector="G" />
-    </filter>
-  </defs>
-</svg>
-
 <script>
 // ── CONFIG ────────────────────────────────────────
 let API_KEY = localStorage.getItem('traceai_key') || ''; // Klucz pobierany z bezpiecznej pamięci przeglądarki
@@ -905,39 +899,7 @@ let historia = [];
 window.onload = () => {
   if (API_KEY) ukryjModal();
   lucide.createIcons();
-  initLiquidGlass();
 };
-
-function initLiquidGlass() {
-  const nav = document.querySelector('.bottom-nav');
-  const mapEl = document.getElementById('liquid-glass-map');
-  if (!nav || !mapEl) return;
-
-  const w = nav.offsetWidth;
-  const h = nav.offsetHeight;
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext('2d');
-  const imgData = ctx.createImageData(w, h);
-  const data = imgData.data;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const x = (i / 4) % w;
-    const y = Math.floor((i / 4) / w);
-    
-    // Tworzymy delikatne zagięcie na górnej krawędzi paska
-    const distFromTop = y / h;
-    const distortion = Math.sin(distFromTop * Math.PI) * 10;
-    
-    data[i] = 128 + distortion; // R: X-offset
-    data[i+1] = 128 + (distFromTop * 10); // G: Y-offset
-    data[i+2] = 0;
-    data[i+3] = 255;
-  }
-  ctx.putImageData(imgData, 0, 0);
-  mapEl.setAttribute('href', canvas.toDataURL());
-}
 
 function zapiszKlucz() {
   const k = document.getElementById('api-key-input').value.trim();

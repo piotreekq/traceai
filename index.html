@@ -714,8 +714,8 @@ body {
         <div class="ring-wrap">
           <svg width="90" height="90" viewBox="0 0 90 90">
             <circle cx="45" cy="45" r="36" fill="none" stroke="#EBEBEB" stroke-width="8"/>
-            <circle cx="45" cy="45" r="36" fill="none" stroke="#F5D76E" stroke-width="8"
-              stroke-dasharray="226" stroke-dashoffset="80" stroke-linecap="round"/>
+            <circle id="ring-fill" cx="45" cy="45" r="36" fill="none" stroke="#F5D76E" stroke-width="8"
+              stroke-dasharray="226" stroke-dashoffset="226" stroke-linecap="round"/>
           </svg>
           <div class="ring-center">
             <span class="ring-num" id="home-count">0</span>
@@ -765,7 +765,7 @@ body {
 
     <div class="section-header" style="margin-top: 16px;">
       <h2>Ostatnie analizy</h2>
-      <span id="recent-count">0 wyników</span>
+      <span id="recent-count">0 analiz</span>
     </div>
 
     <div class="recent-scroll" id="recent-list">
@@ -850,20 +850,9 @@ body {
     <div style="font-weight:600; font-size:15px;">Historia analiz</div>
     <div style="width:64px;"></div>
   </div>
-  <div class="recent-scroll" id="history-list">
-    <!-- Tu będą pojawiać się wszystkie analizy -->
-  </div>
-</div>
-
-<div class="screen" id="screen-history">
-  <div class="topbar">
-    <button class="back-btn" onclick="goHome()">← Wróć</button>
-    <div style="font-weight:600; font-size:15px;">Historia analiz</div>
-    <div style="width:64px;"></div>
-  </div>
-  <div class="recent-scroll" id="history-list">
-    <div style="text-align:center; padding: 32px 0; color: var(--text3); font-size: 14px;">
-      Brak zapisanych analiz w tej sesji.
+  <div class="scroll-area" style="padding: 16px 24px 80px;">
+    <div id="history-list">
+      <!-- Tu będą pojawiać się wszystkie analizy -->
     </div>
   </div>
 </div>
@@ -875,18 +864,19 @@ let API_KEY = localStorage.getItem('traceai_key') || ''; // Klucz pobierany z be
 // Ustawienie modelu (Gemini 2.5 Flash - działa u użytkownika)
 const MODEL = 'gemini-2.5-flash';
 
-const SYSTEM_PROMPT = `Jesteś rygorystycznym ekspertem kryminalistycznym specjalizującym się WYŁĄCZNIE w analizie śladów traseologicznych (ślady obuwia, ślady opon, ślady bosych stóp).
+const SYSTEM_PROMPT = `Jesteś rygorystycznym ekspertem kryminalistycznym specjalizującym się WYŁĄCZNIE w analizie śladów traseologicznych (ślady obuwia, ślady opon, ślady bosych stóp, ślady narzędzi).
 
 ZASADY BEZWZGLĘDNE — ZAWSZE przestrzegaj:
-1. Analizuj TYLKO to co rzeczywiście widzisz na zdjęciu. NIGDY nie zmyślaj cech których nie widać.
-2. Jeśli zdjęcie jest złej jakości, niewyraźne lub ślad jest słabo widoczny — POWIEDZ TO WPROST na początku odpowiedzi.
-3. Jeśli na zdjęciu NIE MA śladu traseologicznego — odmów analizy i wyjaśnij co widzisz.
-4. Każdą ocenę której nie jesteś pewien oznacz słowem "prawdopodobnie" lub "możliwe że".
-5. NIGDY nie podawaj konkretnych pomiarów w cm jeśli na zdjęciu nie ma skali porównawczej.
-6. NIGDY nie identyfikuj konkretnego modelu/marki obuwia chyba że logo jest wyraźnie widoczne.
-7. Wartość dowodową określaj KONSERWATYWNIE — lepiej zaniżyć niż zawyżyć.
+1. Analizuj TYLKO ślady traseologiczne na zdjęciu. NIE ANALIZUJ innych obiektów (owoców, mebli, krajobrazów, zwierząt, ludzi itp.).
+2. Jeśli na zdjęciu NIE MA żadnego śladu traseologicznego — WPROST napisz: "Na tym zdjęciu nie widzę żadnego śladu traseologicznego (ślady obuwia, opon, bosych stóp, narzędzi). Widzę [opisz co widzisz]. Nie mogę przeprowadzić analizy traseologicznej."
+3. Jeśli zdjęcie jest złej jakości, niewyraźne lub ślad jest słabo widoczny — POWIEDZ TO WPROST.
+4. NIGDY nie zmyślaj cech których nie widać.
+5. Każdą ocenę której nie jesteś pewien oznacz "prawdopodobnie" lub "możliwe że".
+6. NIGDY nie podawaj konkretnych pomiarów w cm jeśli na zdjęciu nie ma skali porównawczej.
+7. NIGDY nie identyfikuj konkretnego modelu/marki obuwia chyba że logo jest wyraźnie widoczne.
+8. NIE WYMYŚLAJ kreatywnych interpretacji — jesteś ekspertem, nie artystą.
 
-Formatuj odpowiedź profesjonalnie, używając punktów.`;
+Formatuj odpowiedź profesjonalnie.`;
 
 // ── STATE ─────────────────────────────────────────
 let zdjecieB64 = null;
@@ -894,6 +884,12 @@ let zdjecieMime = null;
 let czeka = false;
 let analizyCount = 0;
 let historia = [];
+
+function polskiem(l) {
+  if (l === 1) return 'analiza';
+  if (l >= 2 && l <= 4) return 'analizy';
+  return 'analiz';
+}
 
 // ── INIT ──────────────────────────────────────────
 window.onload = () => {
@@ -952,6 +948,9 @@ function wgrajZdjecie(e) {
     prev.classList.add('visible');
     document.getElementById('upload-placeholder').classList.add('hidden');
     document.getElementById('upload-zone').classList.add('has-image');
+    
+    // Clear screen results but keep historia for History tab
+    document.getElementById('result-area').innerHTML = '<div style="text-align:center; padding: 16px 0 8px; color: var(--text3); font-size: 13px;">Wgraj zdjęcie i zadaj pytanie</div>';
   };
   reader.readAsDataURL(plik);
 }
@@ -978,6 +977,13 @@ function renderWiadomosc(tekst, rola) {
 
     analizyCount++;
     document.getElementById('home-count').textContent = analizyCount;
+    document.querySelector('.ring-label').textContent = polskiem(analizyCount);
+    
+    const fill = document.getElementById('ring-fill');
+    const maxFill = 5;
+    const percent = Math.min(analizyCount / maxFill, 1);
+    fill.style.strokeDashoffset = 226 - (percent * 226);
+    
     dodajDoHistorii(tekst);
   }
 
@@ -1014,7 +1020,7 @@ function dodajDoHistorii(tekst) {
     </div>
     <div class="recent-score">${analizyCount}</div>`;
   lista.insertBefore(item, lista.firstChild);
-  document.getElementById('recent-count').textContent = `${analizyCount} wyników`;
+  document.getElementById('recent-count').textContent = `${analizyCount} ${polskiem(analizyCount)}`;
   lucide.createIcons();
 }
 
@@ -1031,11 +1037,24 @@ function renderFullHistory() {
   const modelResponses = historia.filter(m => m.role === 'model');
   
   modelResponses.forEach((m, i) => {
+    // Find the position of this model message in historia
+    const modelIdx = historia.indexOf(m);
+    // Find the user message directly before this model response
+    const userIdx = historia.slice(0, modelIdx).findLastIndex(h => h.role === 'user');
+    const userMsg = userIdx >= 0 ? historia[userIdx] : null;
+    const imgData = userMsg?.image;
+    
     const text = m.parts[0].text;
     const card = document.createElement('div');
     card.className = 'result-card';
     const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-    card.innerHTML = `<h3>Analiza #${i+1}</h3><p>${formatted}</p>`;
+    
+    let imgHtml = '';
+    if (imgData) {
+      imgHtml = `<img src="data:${imgData.mime};base64,${imgData.b64}" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-bottom:12px;">`;
+    }
+    
+    card.innerHTML = `<h3>Analiza #${i+1}</h3>${imgHtml}<p>${formatted}</p>`;
     list.appendChild(card);
   });
   lucide.createIcons();
@@ -1055,13 +1074,29 @@ async function wyslij() {
   if (!tekst && !zdjecieB64) return;
   if (!API_KEY) { document.getElementById('modal').style.display = 'flex'; return; }
 
-  // BLOKADA ANALIZY BEZ ZDJĘCIA
-  if (!zdjecieB64) {
+  // BLOKADA ANALIZY BEZ ZDJĘCIA (tylko jeśli nie było wcześniej analizy)
+  const hasPreviousAnalysis = historia.some(h => h.role === 'model');
+  
+  if (!zdjecieB64 && !hasPreviousAnalysis) {
     renderWiadomosc(tekst || 'Brak treści', 'user');
     input.value = '';
     autoResize(input);
     renderWiadomosc(`⚠️ Proszę najpierw wgrać zdjęcie śladu. Bez zdjęcia nie jest możliwa rzetelna analiza kryminalistyczna.`, 'ai');
     return;
+  }
+  
+  // Jeśli to pytanie bez zdjęcia, ale jest poprzednia analiza - sprawdź czy dotyczy tematu
+  // Blokuj tylko bardzo wyraźnie off-topic pytania (nie każde pytanie)
+  if (!zdjecieB64 && hasPreviousAnalysis) {
+    const offTopicWords = ['tęcza', 'sport', 'gotowanie', 'moda', 'muzyka', 'film', 'gry', 'polityka', 'religia', 'miłość', 'zdrowie', 'medycyna', 'uroda'];
+    const isOffTopic = offTopicWords.some(w => tekst.toLowerCase().includes(w));
+    if (isOffTopic) {
+      renderWiadomosc(tekst, 'user');
+      input.value = '';
+      autoResize(input);
+      renderWiadomosc(`⚠️ Jestem specjalistą od analizy śladów traseologicznych (ślady obuwia, opon, bosych stóp, narzędzi) w kryminalistyce. Nie mogę udzielać informacji na inne tematy.`, 'ai');
+      return;
+    }
   }
 
   renderWiadomosc(tekst || '[zdjęcie]', 'user');
@@ -1087,7 +1122,9 @@ async function wyslij() {
     });
   }
 
-  const msgs = historia.slice(-4).concat([{ role: 'user', parts }]);
+  // Filter out image field before sending to API
+  const cleanHistoria = historia.slice(-4).map(m => ({ role: m.role, parts: m.parts }));
+  const msgs = cleanHistoria.concat([{ role: 'user', parts }]);
 
   if (historia.length === 0) {
     msgs[0].parts = [{ text: SYSTEM_PROMPT + '\n\n' + (tekst || 'Analizuj zdjęcie.') }, ...msgs[0].parts.filter(p => p.text !== tekst)];
@@ -1118,7 +1155,10 @@ async function wyslij() {
 
     const odpowiedz = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Brak odpowiedzi.';
 
-    historia.push({ role: 'user', parts });
+    // Store current image with history for History tab
+    const imgData = zdjecieB64 ? { b64: zdjecieB64, mime: zdjecieMime } : null;
+    
+    historia.push({ role: 'user', parts, image: imgData });
     historia.push({ role: 'model', parts: [{ text: odpowiedz }] });
 
     usunTyping();
@@ -1132,10 +1172,60 @@ async function wyslij() {
     document.getElementById('upload-zone').classList.remove('has-image');
 
   } catch (err) {
-    usunTyping();
     console.error(err);
     
-    if (err.message.toLowerCase().includes('api key') || err.message.toLowerCase().includes('expired')) {
+    const isHighDemand = err.message.toLowerCase().includes('high demand') || 
+                         err.message.toLowerCase().includes('temporary') ||
+                         err.message.toLowerCase().includes('try again');
+    
+    if (isHighDemand && !this._retryCount) {
+      this._retryCount = 0;
+    }
+    
+    if (isHighDemand && this._retryCount < 2) {
+      this._retryCount++;
+      renderWiadomosc(`⏳ Model przeciążony. Próba ${this._retryCount}/2 za 3 sek...`, 'ai');
+      await new Promise(r => setTimeout(r, 3000));
+      usunTyping();
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1/models/${MODEL}:generateContent?key=${API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: msgs,
+              generationConfig: { maxOutputTokens: 4000, temperature: 0.1 }
+            })
+          }
+        );
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        const odpowiedz = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Brak odpowiedzi.';
+        const imgData = zdjecieB64 ? { b64: zdjecieB64, mime: zdjecieMime } : null;
+        historia.push({ role: 'user', parts, image: imgData });
+        historia.push({ role: 'model', parts: [{ text: odpowiedz }] });
+        renderWiadomosc(odpowiedz, 'ai');
+        zdjecieB64 = null;
+        zdjecieMime = null;
+        document.getElementById('img-preview').classList.remove('visible');
+        document.getElementById('upload-placeholder').classList.remove('hidden');
+        document.getElementById('upload-zone').classList.remove('has-image');
+        this._retryCount = 0;
+        czeka = false;
+        document.getElementById('send-btn').disabled = false;
+        return;
+      } catch (retryErr) {
+        err = retryErr;
+      }
+    }
+    
+    usunTyping();
+    
+    const errLower = err.message.toLowerCase();
+    if (errLower.includes('does not support image') || errLower.includes('image input')) {
+      renderWiadomosc(`⚠️ Ten model nie obsługuje obrazów. Spróbuj wgrać zdjęcie w nowej sesji lub użyć innego modelu.`, 'ai');
+    } else if (errLower.includes('api key') || errLower.includes('expired')) {
       localStorage.removeItem('traceai_key');
       API_KEY = '';
       renderWiadomosc(`⚠️ Klucz API wygasł lub jest nieprawidłowy. Proszę podać nowy klucz.`, 'ai');
@@ -1145,6 +1235,7 @@ async function wyslij() {
     }
   }
 
+  this._retryCount = 0;
   czeka = false;
   document.getElementById('send-btn').disabled = false;
 }

@@ -680,7 +680,47 @@ body {
   transition: opacity 0.2s;
 }
 
-.sheet-submit:active { opacity: 0.8; }
+.sheet-clear-btn {
+  width: 100%;
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 12px;
+  font-family: var(--sans);
+}
+.sheet-clear-btn:active { background: #F0F0EC; }
+
+.report-btn {
+  margin-top: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--sans);
+  width: fit-content;
+}
+.report-btn:active { background: var(--yellow); }
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  font-family: var(--sans);
+  text-decoration: underline;
+}
+.toggle-btn:active { color: var(--text); }
 </style>
 </head>
 <body>
@@ -693,6 +733,7 @@ body {
     Darmowy klucz na <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> → Get API Key.</p>
     <input type="password" id="api-key-input" placeholder="AIza..." autocomplete="off">
     <button class="sheet-submit" onclick="zapiszKlucz()">Uruchom asystenta</button>
+    <button class="sheet-clear-btn" onclick="wyczyscHistorie()">Wyczyść historię analiz</button>
   </div>
 </div>
 
@@ -864,21 +905,86 @@ let API_KEY = localStorage.getItem('traceai_key') || ''; // Klucz pobierany z be
 // Ustawienie modelu (Gemini 2.5 Flash - działa u użytkownika)
 const MODEL = 'gemini-2.5-flash';
 
+// ── DATABASE (IndexedDB) ────────────────────────────
+const DB_NAME = 'TraceAIDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'history';
+
+async function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveAnalysisToDB(analysis) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.add(analysis);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function loadAnalysisFromDB() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function clearDB() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 const SYSTEM_PROMPT = `Jesteś rygorystycznym ekspertem kryminalistycznym specjalizującym się WYŁĄCZNIE w analizie śladów traseologicznych (ślady obuwia, ślady opon, ślady bosych stóp, ślady narzędzi).
 
 ZASADY BEZWZGLĘDNE — ZAWSZE przestrzegaj:
-1. Analizuj TYLKO ślady traseologiczne na zdjęciu. NIE ANALIZUJ innych obiektów (owoców, mebli, krajobrazów, zwierząt, ludzi itp.).
-2. Jeśli na zdjęciu NIE MA żadnego śladu traseologicznego — WPROST napisz: "Na tym zdjęciu nie widzę żadnego śladu traseologicznego (ślady obuwia, opon, bosych stóp, narzędzi). Widzę [opisz co widzisz]. Nie mogę przeprowadzić analizy traseologicznej."
-3. Jeśli zdjęcie jest złej jakości, niewyraźne lub ślad jest słabo widoczny — POWIEDZ TO WPROST.
-4. NIGDY nie zmyślaj cech których nie widać.
-5. Każdą ocenę której nie jesteś pewien oznacz "prawdopodobnie" lub "możliwe że".
-6. NIGDY nie podawaj konkretnych pomiarów w cm jeśli na zdjęciu nie ma skali porównawczej.
-7. NIGDY nie identyfikuj konkretnego modelu/marki obuwia chyba że logo jest wyraźnie widoczne.
-8. NIE WYMYŚLAJ kreatywnych interpretacji — jesteś ekspertem, nie artystą.
-9. NIGDY nie podawaj żadnych dat ani czasu w analizie.
-10. Przedstawiaj najważniejsze informacje w sposób niezwykle zwięzły, konkretny, bez zbędnego lania wody i zbędnych wstępów lub podsumowań. Pisz krótko i wyłącznie na temat.
+1. OBOWIĄZKOWO rozpocznij każdą odpowiedź od jednej, bardzo krótkiej i konkretnej linii będącej TYTUŁEM (maksymalnie 5-6 słów). 
+   Przykład: "But sportowy lewy, rozmiar 42", "Ślad opony Michelin", "Odcisk bosej stopy lewej".
+   Tytuł NIE może być pełnym zdaniem i NIE może kończyć się kropką.
+   Po tytule dodaj dokładnie dwa znaki nowej linii.
+2. Analizuj TYLKO ślady traseologiczne na zdjęciu. NIE ANALIZUJ innych obiektów (owoców, mebli, krajobrazów, zwierząt, ludzi itp.).
+3. Jeśli na zdjęciu NIE MA żadnego śladu traseologicznego — WPROST napisz w pierwszej linii: "Brak śladu traseologicznego", a następnie wyjaśnij co widzisz i odmów analizy.
+4. Jeśli zdjęcie jest złej jakości, niewyraźne lub ślad jest słabo widoczny — POWIEDZ TO WPROST.
+5. NIGDY nie zmyślaj cech których nie widać.
+6. Każdą ocenę której nie jesteś pewien oznacz "prawdopodobnie" lub "możliwe że".
+7. NIGDY nie podawaj konkretnych pomiarów w cm jeśli na zdjęciu nie ma skali porównawczej.
+8. NIGDY nie identyfikuj konkretnego modelu/marki obuwia chyba że logo jest wyraźnie widoczne.
+9. NIE WYMYŚLAJ kreatywnych interpretacji — jesteś ekspertem, nie artystą.
+10. NIGDY nie podawaj żadnych dat ani czasu w analizie.
+11. Przedstawiaj najważniejsze informacje w sposób zwięzły, ale wyczerpujący, bez zbędnego lania wody i zbędnych wstępów lub podsumowań.
 
-Formatuj odpowiedź profesjonalnie.`;
+TWOJA ANALIZA MUSI BYĆ SZCZEGÓŁOWA I ZAWIERAĆ NASTĘPUJĄCE SEKCJE:
+- Charakterystyka morfologiczna śladu (rozmiar, wzór, cechy klasowe).
+- Analiza cech indywidualnych i uszkodzeń (przetarcia, ubytki, zanieczyszczenia).
+- Estymacja Cech Fizycznych na Podstawie Zużycia (Biomechanika):
+  * Analiza nacisku i zużycia podeszwy pod kątem wad postawy (np. pronacja, supinacja).
+  * Hipoteza dotycząca szacunkowej wagi (na podstawie głębokości i rozkładu sił w podłożu odkształcalnym).
+  * Specyfika chodu (np. cechy wskazujące na utykanie lub asymetrię kroku).
+- Wartość dowodowa śladu (niska/średnia/wysoka).
+
+Formatuj odpowiedź profesjonalnie, używając pogrubień dla kluczowych terminów.`;
+
 
 // ── STATE ─────────────────────────────────────────
 let zdjecieB64 = null;
@@ -886,6 +992,7 @@ let zdjecieMime = null;
 let czeka = false;
 let analizyCount = 0;
 let historia = [];
+let retryCount = 0;
 
 function polskiem(l) {
   if (l === 1) return 'analiza';
@@ -893,11 +1000,120 @@ function polskiem(l) {
   return 'analiz';
 }
 
+function extractTitle(text) {
+  if (!text) return 'Nieznana analiza';
+  const lines = text.trim().split('\n').filter(l => l.trim() !== '');
+  if (lines.length === 0) return 'Nieznana analiza';
+  
+  const isHeader = (l) => l.startsWith('#') || /^[I|V|X]+\.\s/i.test(l) || /^\d+[\.\)]\s/.test(l);
+  const isIntro = (l) => {
+    const p = ['poniżej przedstawiam', 'przedstawiam szczegółową analizę', 'oto analiza', 'analiza śladu'];
+    return p.some(pat => l.toLowerCase().includes(pat));
+  };
+  
+  // 1. Try to find a valid title line (short, no period, not a header, not an intro)
+  for (let i = 0; i < Math.min(lines.length, 15); i++) {
+    let line = lines[i].replace(/\*\*/g, '').replace(/^[\*\-\•\s]+/, '').trim();
+    if (line.length > 3 && line.length < 60 && !line.endsWith('.') && !isHeader(line) && !isIntro(line)) {
+      return line;
+    }
+  }
+  
+  // 2. Fallback: Try to extract "Rodzaj obuwia" and "Strona obuwia"
+  let rodzaj = '';
+  let strona = '';
+  for (let line of lines) {
+    const cleanLine = line.replace(/\*\*/g, '').trim();
+    if (cleanLine.toLowerCase().includes('rodzaj obuwia:')) {
+      rodzaj = cleanLine.split(/rodzaj obuwia:/i)[1]?.trim() || '';
+    } else if (cleanLine.toLowerCase().includes('strona obuwia:')) {
+      strona = cleanLine.split(/strona obuwia:/i)[1]?.trim() || '';
+    }
+  }
+  if (rodzaj || strona) {
+    return `${strona} ${rodzaj}`.trim() || 'Analiza Traseologiczna';
+  }
+  
+  // 3. Final fallback: use a strong keyword search
+  const keywords = ['but', 'opona', 'odcisk', 'rozmiar', 'marka', 'Nike', 'Adidas', 'Puma', 'Wojas'];
+  for (let i = 0; i < Math.min(lines.length, 20); i++) {
+    let line = lines[i].replace(/\*\*/g, '').trim();
+    if (keywords.some(k => line.toLowerCase().includes(k.toLowerCase()))) {
+      const match = line.match(/(But|Opona|Odcisk)\s+[^:]+/i);
+      if (match) return match[0].substring(0, 60);
+      if (line.length < 60) return line;
+    }
+  }
+  
+  return 'Analiza Traseologiczna';
+}
+
 // ── INIT ──────────────────────────────────────────
-window.onload = () => {
+window.onload = async () => {
   if (API_KEY) ukryjModal();
   lucide.createIcons();
+  
+  // Load persistent history
+  try {
+    const saved = await loadAnalysisFromDB();
+    if (saved.length > 0) {
+      // Reconstruct the historia array (user-model pairs)
+      historia = [];
+      saved.forEach(item => {
+        historia.push({ role: 'user', parts: item.userParts, image: item.image });
+        historia.push({ role: 'model', parts: item.modelParts });
+      });
+      analizyCount = saved.length;
+      document.getElementById('home-count').textContent = analizyCount;
+      document.querySelector('.ring-label').textContent = polskiem(analizyCount);
+      
+      // Update ring fill
+      const fill = document.getElementById('ring-fill');
+      const percent = Math.min(analizyCount / 5, 1);
+      fill.style.strokeDashoffset = 226 - (percent * 226);
+      
+      // Populate home recent list
+      renderRecentFromHistory();
+    }
+  } catch (e) {
+    console.error('Failed to load history:', e);
+  }
 };
+
+function renderRecentFromHistory() {
+  const lista = document.getElementById('recent-list');
+  lista.innerHTML = '';
+  
+  // Show last 5 analyses in reverse order
+  const modelResponses = historia.filter(m => m.role === 'model');
+  const recent = modelResponses.slice(-5).reverse();
+  
+  if (recent.length === 0) {
+    lista.innerHTML = '<div style="text-align:center; padding: 40px 24px; color: var(--text3); font-size: 14px; font-weight: 400; line-height: 1.6; font-style: italic;">Brak analiz — zacznij od przycisku poniżej</div>';
+    return;
+  }
+  
+  recent.forEach((m, i) => {
+    const text = m.parts[0].text;
+    const title = extractTitle(text);
+    const index = historia.indexOf(m);
+    const count = Math.floor((index + 1) / 2);
+    
+    const item = document.createElement('div');
+    item.className = 'recent-item';
+    item.onclick = () => generujRaport(index);
+    item.innerHTML = `
+      <div class="recent-dot" style="background:#FEF3C7"><i data-lucide="footprints"></i></div>
+      <div class="recent-info">
+        <h4>Analiza #${count}</h4>
+        <p>${title}</p>
+      </div>
+      <div class="recent-score">${count}</div>`;
+    lista.appendChild(item);
+  });
+  document.getElementById('recent-count').textContent = `${modelResponses.length} wyników`;
+  lucide.createIcons();
+}
 
 function zapiszKlucz() {
   const k = document.getElementById('api-key-input').value.trim();
@@ -935,6 +1151,72 @@ function goHistory() {
   document.getElementById('screen-history').classList.add('active');
   renderFullHistory();
 }
+
+async function wyczyscHistorie() {
+  if (confirm('Czy na pewno chcesz usunąć całą historię analiz? Ta czynność jest nieodwracalna.')) {
+    await clearDB();
+    historia = [];
+    analizyCount = 0;
+    document.getElementById('home-count').textContent = '0';
+    document.querySelector('.ring-label').textContent = polskiem(0);
+    document.getElementById('ring-fill').style.strokeDashoffset = '226';
+    document.getElementById('recent-count').textContent = '0 analiz';
+    document.getElementById('recent-list').innerHTML = '<div style="text-align:center; padding: 40px 24px; color: var(--text3); font-size: 14px; font-weight: 400; line-height: 1.6; font-style: italic;">Brak analiz — zacznij od przycisku poniżej</div>';
+    alert('Historia została wyczyszczona.');
+  }
+}
+
+function generujRaport(modelIdx) {
+  const modelMsg = historia[modelIdx];
+  const userIdx = historia.slice(0, modelIdx).findLastIndex(h => h.role === 'user');
+  const userMsg = userIdx >= 0 ? historia[userIdx] : null;
+  
+  const text = modelMsg.parts[0].text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+  const imgData = userMsg?.image;
+  const imgHtml = imgData ? `<img src="data:${imgData.mime};base64,${imgData.b64}" style="width:100%; max-width:600px; border:1px solid #ddd; border-radius:8px; margin: 20px 0;">` : '';
+  
+  const reportWindow = window.open('', '_blank');
+  reportWindow.document.write(`
+    <html>
+      <head>
+        <title>Raport Analizy Traseologicznej - TraceAI</title>
+        <style>
+          body { font-family: 'Times New Roman', serif; padding: 40px; color: #333; line-height: 1.6; }
+          .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 30px; padding-bottom: 10px; }
+          .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
+          .section { margin-bottom: 25px; }
+          .section-title { font-weight: bold; text-decoration: underline; margin-bottom: 10px; font-size: 18px; }
+          .content { white-space: pre-wrap; font-size: 14px; }
+          .footer { margin-top: 50px; display: flex; justify-content: space-between; }
+          .sig-box { border-top: 1px solid #000; width: 200px; text-align: center; padding-top: 5px; font-size: 12px; }
+          @media print { .print-btn { display: none; } }
+          .print-btn { background: #000; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px; }
+        </style>
+      </head>
+      <body>
+        <button class="print-btn" onclick="window.print()">Drukuj do PDF</button>
+        <div class="header">
+          <h1>Raport Analizy Traseologicznej</h1>
+          <p>Wygenerowano automatycznie przez system TraceAI</p>
+        </div>
+        <div class="section">
+          <div class="section-title">Dokumentacja Fotograficzna</div>
+          ${imgHtml || '<p>Brak zdjęcia dołączonego do analizy.</p>'}
+        </div>
+        <div class="section">
+          <div class="section-title">Wynik Analizy Eksperckiej</div>
+          <div class="content">${text}</div>
+        </div>
+        <div class="footer">
+          <div class="sig-box">Podpis eksperta</div>
+          <div class="sig-box">Data i podpis odbiorcy</div>
+        </div>
+      </body>
+    </html>
+  `);
+  reportWindow.document.close();
+}
+
 
 // ── ZDJĘCIE ───────────────────────────────────────
 function wgrajZdjecie(e) {
@@ -974,8 +1256,9 @@ function renderWiadomosc(tekst, rola) {
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br>');
 
-    card.innerHTML = `<h3>Analiza AI</h3><p>${formatted}</p>`;
+    card.innerHTML = `<h3>Analiza AI</h3><p>${formatted}</p><button class="report-btn" onclick="generujRaport(${historia.length - 1})"><i data-lucide="file-text" style="width:14px; height:14px;"></i> Pobierz raport</button>`;
     area.appendChild(card);
+    lucide.createIcons();
 
     analizyCount++;
     document.getElementById('home-count').textContent = analizyCount;
@@ -1010,20 +1293,36 @@ function usunTyping() {
 function dodajDoHistorii(tekst) {
   const lista = document.getElementById('recent-list');
   if (lista.querySelector('div[style]')) lista.innerHTML = '';
-
-  const skrot = tekst.replace(/\*\*/g, '').substring(0, 50) + '...';
+  
+  const title = extractTitle(tekst);
   const item = document.createElement('div');
   item.className = 'recent-item';
+  item.onclick = () => generujRaport(historia.length - 1);
   item.innerHTML = `
     <div class="recent-dot" style="background:#FEF3C7"><i data-lucide="footprints"></i></div>
     <div class="recent-info">
       <h4>Analiza #${analizyCount}</h4>
-      <p>${skrot}</p>
+      <p>${title}</p>
     </div>
     <div class="recent-score">${analizyCount}</div>`;
   lista.insertBefore(item, lista.firstChild);
   document.getElementById('recent-count').textContent = `${analizyCount} ${polskiem(analizyCount)}`;
   lucide.createIcons();
+}
+
+function toggleHistoryText(btn) {
+  const wrap = btn.parentElement;
+  const snippet = wrap.querySelector('.history-text-snippet');
+  const full = wrap.querySelector('.history-text-full');
+  if (full.style.display === 'none') {
+    full.style.display = 'block';
+    snippet.style.display = 'none';
+    btn.textContent = 'Pokaż mniej';
+  } else {
+    full.style.display = 'none';
+    snippet.style.display = 'block';
+    btn.textContent = 'Pokaż więcej';
+  }
 }
 
 function renderFullHistory() {
@@ -1056,7 +1355,19 @@ function renderFullHistory() {
       imgHtml = `<img src="data:${imgData.mime};base64,${imgData.b64}" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-bottom:12px;">`;
     }
     
-    card.innerHTML = `<h3>Analiza #${i+1}</h3>${imgHtml}<p>${formatted}</p>`;
+    const isLong = formatted.length > 200;
+    const snippet = isLong ? formatted.substring(0, 200) + '...' : formatted;
+    
+    card.innerHTML = `
+      <h3>Analiza #${i+1}</h3>
+      ${imgHtml}
+      <div class="history-content-wrap">
+        <div class="history-text-snippet" style="display: ${isLong ? 'block' : 'none'}">${snippet}</div>
+        <div class="history-text-full" style="display: ${isLong ? 'none' : 'block'}">${formatted}</div>
+        ${isLong ? `<button class="toggle-btn" onclick="toggleHistoryText(this)">Pokaż więcej</button>` : ''}
+      </div>
+      <button class="report-btn" onclick="generujRaport(${modelIdx})"><i data-lucide="file-text" style="width:14px; height:14px;"></i> Pobierz raport</button>
+    `;
     list.appendChild(card);
   });
   lucide.createIcons();
@@ -1163,6 +1474,14 @@ async function wyslij() {
     historia.push({ role: 'user', parts, image: imgData });
     historia.push({ role: 'model', parts: [{ text: odpowiedz }] });
 
+    // Save to persistent DB
+    await saveAnalysisToDB({
+      userParts: parts,
+      modelParts: [{ text: odpowiedz }],
+      image: imgData,
+      timestamp: Date.now()
+    });
+
     usunTyping();
     renderWiadomosc(odpowiedz, 'ai');
 
@@ -1177,16 +1496,12 @@ async function wyslij() {
     console.error(err);
     
     const isHighDemand = err.message.toLowerCase().includes('high demand') || 
-                         err.message.toLowerCase().includes('temporary') ||
-                         err.message.toLowerCase().includes('try again');
+                             err.message.toLowerCase().includes('temporary') ||
+                             err.message.toLowerCase().includes('try again');
     
-    if (isHighDemand && !this._retryCount) {
-      this._retryCount = 0;
-    }
-    
-    if (isHighDemand && this._retryCount < 2) {
-      this._retryCount++;
-      renderWiadomosc(`⏳ Model przeciążony. Próba ${this._retryCount}/2 za 3 sek...`, 'ai');
+    if (isHighDemand && retryCount < 2) {
+      retryCount++;
+      renderWiadomosc(`⏳ Model przeciążony. Próba ${retryCount}/2 za 3 sek...`, 'ai');
       await new Promise(r => setTimeout(r, 3000));
       usunTyping();
       try {
@@ -1204,16 +1519,21 @@ async function wyslij() {
         const data = await res.json();
         if (data.error) throw new Error(data.error.message);
         const odpowiedz = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Brak odpowiedzi.';
+        
         const imgData = zdjecieB64 ? { b64: zdjecieB64, mime: zdjecieMime } : null;
         historia.push({ role: 'user', parts, image: imgData });
         historia.push({ role: 'model', parts: [{ text: odpowiedz }] });
+        
+        await saveAnalysisToDB({
+          userParts: parts,
+          modelParts: [{ text: odpowiedz }],
+          image: imgData,
+          timestamp: Date.now()
+        });
+
         renderWiadomosc(odpowiedz, 'ai');
-        zdjecieB64 = null;
-        zdjecieMime = null;
-        document.getElementById('img-preview').classList.remove('visible');
-        document.getElementById('upload-placeholder').classList.remove('hidden');
-        document.getElementById('upload-zone').classList.remove('has-image');
-        this._retryCount = 0;
+        
+        retryCount = 0;
         czeka = false;
         document.getElementById('send-btn').disabled = false;
         return;
@@ -1237,7 +1557,7 @@ async function wyslij() {
     }
   }
 
-  this._retryCount = 0;
+  retryCount = 0;
   czeka = false;
   document.getElementById('send-btn').disabled = false;
 }

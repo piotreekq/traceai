@@ -721,6 +721,19 @@ body {
   text-decoration: underline;
 }
 .toggle-btn:active { color: var(--text); }
+
+@media print {
+  body * { visibility: hidden; }
+  #print-section, #print-section * { visibility: visible; }
+  #print-section {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}
 </style>
 </head>
 <body>
@@ -736,6 +749,8 @@ body {
     <button class="sheet-clear-btn" onclick="wyczyscHistorie()">Wyczyść historię analiz</button>
   </div>
 </div>
+
+<div id="print-section" style="display: none;"></div>
 
 <div class="screen active" id="screen-home">
 
@@ -993,6 +1008,7 @@ let czeka = false;
 let analizyCount = 0;
 let historia = [];
 let retryCount = 0;
+let sessionActive = false;
 
 function polskiem(l) {
   if (l === 1) return 'analiza';
@@ -1133,6 +1149,7 @@ function pokazModal() {
 
 // ── NAWIGACJA ─────────────────────────────────────
 function goScan(prefill) {
+  sessionActive = false;
   document.getElementById('screen-home').classList.remove('active');
   document.getElementById('screen-scan').classList.add('active');
   if (prefill) {
@@ -1166,55 +1183,51 @@ async function wyczyscHistorie() {
   }
 }
 
+function wyczyscNaRaport(raw) {
+  let t = raw;
+  // usuń wstępne podziękowania / przeprosiny / korekty przed właściwą analizą
+  t = t.replace(/^[\s\S]*?(?=##\s)/i, '');
+  // jeśli brak nagłówków ##, usuń akapity intro (Dziękuję, Przepraszam, Poniżej, Poprawiona)
+  if (!t.includes('##')) {
+    t = t.replace(/^(?:Dziękuję[\s\S]*?\n+|Przepraszam[\s\S]*?\n+|Poniżej[\s\S]*?\n+|Poprawiona[\s\S]*?\n+)+/i, '');
+  }
+  return t.trim();
+}
+
 function generujRaport(modelIdx) {
   const modelMsg = historia[modelIdx];
   const userIdx = historia.slice(0, modelIdx).findLastIndex(h => h.role === 'user');
   const userMsg = userIdx >= 0 ? historia[userIdx] : null;
   
-  const text = modelMsg.parts[0].text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+  const cleaned = wyczyscNaRaport(modelMsg.parts[0].text);
+  const text = cleaned.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
   const imgData = userMsg?.image;
   const imgHtml = imgData ? `<img src="data:${imgData.mime};base64,${imgData.b64}" style="width:100%; max-width:600px; border:1px solid #ddd; border-radius:8px; margin: 20px 0;">` : '';
   
-  const reportWindow = window.open('', '_blank');
-  reportWindow.document.write(`
-    <html>
-      <head>
-        <title>Raport Analizy Traseologicznej - TraceAI</title>
-        <style>
-          body { font-family: 'Times New Roman', serif; padding: 40px; color: #333; line-height: 1.6; }
-          .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 30px; padding-bottom: 10px; }
-          .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
-          .section { margin-bottom: 25px; }
-          .section-title { font-weight: bold; text-decoration: underline; margin-bottom: 10px; font-size: 18px; }
-          .content { white-space: pre-wrap; font-size: 14px; }
-          .footer { margin-top: 50px; display: flex; justify-content: space-between; }
-          .sig-box { border-top: 1px solid #000; width: 200px; text-align: center; padding-top: 5px; font-size: 12px; }
-          @media print { .print-btn { display: none; } }
-          .print-btn { background: #000; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px; }
-        </style>
-      </head>
-      <body>
-        <button class="print-btn" onclick="window.print()">Drukuj do PDF</button>
-        <div class="header">
-          <h1>Raport Analizy Traseologicznej</h1>
-          <p>Wygenerowano automatycznie przez system TraceAI</p>
-        </div>
-        <div class="section">
-          <div class="section-title">Dokumentacja Fotograficzna</div>
-          ${imgHtml || '<p>Brak zdjęcia dołączonego do analizy.</p>'}
-        </div>
-        <div class="section">
-          <div class="section-title">Wynik Analizy Eksperckiej</div>
-          <div class="content">${text}</div>
-        </div>
-        <div class="footer">
-          <div class="sig-box">Podpis eksperta</div>
-          <div class="sig-box">Data i podpis odbiorcy</div>
-        </div>
-      </body>
-    </html>
-  `);
-  reportWindow.document.close();
+  const section = document.getElementById('print-section');
+  section.innerHTML = `
+    <div style="font-family: 'Times New Roman', serif; padding: 40px; color: #333; line-height: 1.6;">
+      <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 30px; padding-bottom: 10px;">
+        <h1 style="margin: 0; font-size: 24px; text-transform: uppercase;">Raport Analizy Traseologicznej</h1>
+        <p>Wygenerowano automatycznie przez system TraceAI</p>
+      </div>
+      <div style="margin-bottom: 25px;">
+        <div style="font-weight: bold; text-decoration: underline; margin-bottom: 10px; font-size: 18px;">Dokumentacja Fotograficzna</div>
+        ${imgHtml || '<p>Brak zdjęcia dołączonego do analizy.</p>'}
+      </div>
+      <div style="margin-bottom: 25px;">
+        <div style="font-weight: bold; text-decoration: underline; margin-bottom: 10px; font-size: 18px;">Wynik Analizy Eksperckiej</div>
+        <div style="white-space: pre-wrap; font-size: 14px;">${text}</div>
+      </div>
+      <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+        <div style="border-top: 1px solid #000; width: 200px; text-align: center; padding-top: 5px; font-size: 12px;">Podpis eksperta</div>
+        <div style="border-top: 1px solid #000; width: 200px; text-align: center; padding-top: 5px; font-size: 12px;">Data i podpis odbiorcy</div>
+      </div>
+    </div>
+  `;
+  section.style.display = 'block';
+  window.print();
+  setTimeout(() => { section.style.display = 'none'; }, 1000);
 }
 
 
@@ -1242,7 +1255,7 @@ function wgrajZdjecie(e) {
 // ── RENDER RESULTS ────────────────────────────────
 function renderWiadomosc(tekst, rola) {
   const area = document.getElementById('result-area');
-
+  
   if (rola === 'user') {
     const d = document.createElement('div');
     d.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:10px;';
@@ -1251,27 +1264,36 @@ function renderWiadomosc(tekst, rola) {
   } else {
     const card = document.createElement('div');
     card.className = 'result-card';
-
+    
     const formatted = tekst
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br>');
-
-    card.innerHTML = `<h3>Analiza AI</h3><p>${formatted}</p><button class="report-btn" onclick="generujRaport(${historia.length - 1})"><i data-lucide="file-text" style="width:14px; height:14px;"></i> Pobierz raport</button>`;
+    
+    // Check if this is an error/system message
+    const isError = tekst.startsWith('⚠️') || tekst.startsWith('⏳') || tekst.toLowerCase().includes('błąd:');
+    
+    if (isError) {
+      card.innerHTML = `<p>${formatted}</p>`;
+    } else {
+      card.innerHTML = `<h3>Analiza AI</h3><p>${formatted}</p><button class="report-btn" onclick="generujRaport(${historia.length - 1})"><i data-lucide="file-text" style="width:14px; height:14px;"></i> Pobierz raport</button>`;
+      
+      // Only update stats and history for successful analyses
+      analizyCount++;
+      document.getElementById('home-count').textContent = analizyCount;
+      document.querySelector('.ring-label').textContent = polskiem(analizyCount);
+      
+      const fill = document.getElementById('ring-fill');
+      const maxFill = 5;
+      const percent = Math.min(analizyCount / maxFill, 1);
+      fill.style.strokeDashoffset = 226 - (percent * 226);
+      
+      dodajDoHistorii(tekst);
+    }
+    
     area.appendChild(card);
     lucide.createIcons();
-
-    analizyCount++;
-    document.getElementById('home-count').textContent = analizyCount;
-    document.querySelector('.ring-label').textContent = polskiem(analizyCount);
-    
-    const fill = document.getElementById('ring-fill');
-    const maxFill = 5;
-    const percent = Math.min(analizyCount / maxFill, 1);
-    fill.style.strokeDashoffset = 226 - (percent * 226);
-    
-    dodajDoHistorii(tekst);
   }
-
+  
   area.scrollTop = area.scrollHeight;
 }
 
@@ -1387,10 +1409,8 @@ async function wyslij() {
   if (!tekst && !zdjecieB64) return;
   if (!API_KEY) { document.getElementById('modal').style.display = 'flex'; return; }
 
-  // BLOKADA ANALIZY BEZ ZDJĘCIA (tylko jeśli nie było wcześniej analizy)
-  const hasPreviousAnalysis = historia.some(h => h.role === 'model');
-  
-  if (!zdjecieB64 && !hasPreviousAnalysis) {
+  // BLOKADA ANALIZY BEZ ZDJĘCIA (tylko jeśli nie trwa aktywna sesja analizy)
+  if (!zdjecieB64 && !sessionActive) {
     renderWiadomosc(tekst || 'Brak treści', 'user');
     input.value = '';
     autoResize(input);
@@ -1398,9 +1418,8 @@ async function wyslij() {
     return;
   }
   
-  // Jeśli to pytanie bez zdjęcia, ale jest poprzednia analiza - sprawdź czy dotyczy tematu
-  // Blokuj tylko bardzo wyraźnie off-topic pytania (nie każde pytanie)
-  if (!zdjecieB64 && hasPreviousAnalysis) {
+  // Jeśli to pytanie bez zdjęcia, ale trwa sesja - sprawdź czy dotyczy tematu
+  if (!zdjecieB64 && sessionActive) {
     const offTopicWords = ['tęcza', 'sport', 'gotowanie', 'moda', 'muzyka', 'film', 'gry', 'polityka', 'religia', 'miłość', 'zdrowie', 'medycyna', 'uroda'];
     const isOffTopic = offTopicWords.some(w => tekst.toLowerCase().includes(w));
     if (isOffTopic) {
@@ -1467,7 +1486,8 @@ async function wyslij() {
     if (data.error) throw new Error(data.error.message);
 
     const odpowiedz = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Brak odpowiedzi.';
-
+    sessionActive = true;
+    
     // Store current image with history for History tab
     const imgData = zdjecieB64 ? { b64: zdjecieB64, mime: zdjecieMime } : null;
     
@@ -1519,6 +1539,7 @@ async function wyslij() {
         const data = await res.json();
         if (data.error) throw new Error(data.error.message);
         const odpowiedz = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Brak odpowiedzi.';
+        sessionActive = true;
         
         const imgData = zdjecieB64 ? { b64: zdjecieB64, mime: zdjecieMime } : null;
         historia.push({ role: 'user', parts, image: imgData });

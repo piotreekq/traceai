@@ -33,6 +33,15 @@ try { localStorage.removeItem('traceai_key'); } catch (e) { console.warn('Local 
 function makeId() { return 'sesja-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10); }
 function el(id) { return document.getElementById(id); }
 const ICON_PATHS = {
+  "sparkles": '<path d="m12 3 1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9L12 3zM19 18l.8 1.2L21 20l-1.2.8L19 22l-.8-1.2L17 20l1.2-.8L19 18z"/>',
+  "rotate-ccw": '<path d="M3 11a9 9 0 1 1 2.6 6.4M3 4v7h7"/>',
+  "rotate-cw": '<path d="M21 11a9 9 0 1 0-2.6 6.4M21 4v7h-7"/>',
+  "hand": '<path d="M8 13V6a2 2 0 0 1 4 0v5-7a2 2 0 0 1 4 0v7-5a2 2 0 0 1 4 0v9c0 4-3 6-7 6h-2c-2 0-4-2-6-5l-2-3a2 2 0 0 1 3-2l2 2"/>',
+  "crosshair": '<circle cx="12" cy="12" r="7"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/>',
+  "slash": '<path d="M5 19 19 5"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/>',
+  "square-dashed": '<path d="M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5"/>',
+  "ruler": '<path d="m3 16 13-13 5 5L8 21zM11 8l2 2m1-5 2 2M8 11l2 2"/>',
+  "scan-line": '<path d="M4 8V4h4m8 0h4v4M4 16v4h4m8 0h4v-4M3 12h18"/>',
   "arrow-up": "<path d=\"M12 19V5\"/><path d=\"m5 12 7-7 7 7\"/>",
   "camera": "<path d=\"M14 4h-4L8 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-4z\"/><circle cx=\"12\" cy=\"14\" r=\"3\"/>",
   "chevron-right": "<path d=\"m9 18 6-6-6-6\"/>",

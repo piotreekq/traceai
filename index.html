@@ -1047,6 +1047,42 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
 .pdf-preview-help{font:12px/1.5 var(--sans);color:var(--text2);padding:9px 13px}
 @media(max-width:365px){#screen-scan .topbar{padding-left:12px;padding-right:12px}#screen-scan .topbar .back-btn{font-size:11px;padding:8px}.case-inline-actions{gap:6px}}
 
+
+/* TraceAI 3.0.3 — coherent controls and home polish */
+:root{--ui-radius:15px;--ui-radius-lg:22px}
+button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color:transparent}
+.back-btn,.qpill,.case-mini-btn,.case-report-link,.case-inline-actions button,.case-form-actions button,.editor-open button,.pdf-preview-actions button,.pdf-preview-actions a,.banner-btn,.header-theme-btn,.avatar-btn{border-radius:var(--ui-radius)!important}
+.action-btn,.score-card,.assistant-banner,.case-card,.result-card{border-radius:var(--ui-radius-lg)!important}
+.header-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex:none}
+.header-theme-btn,.avatar-btn{width:42px!important;height:42px!important;min-width:42px;min-height:42px;display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important;line-height:0;box-sizing:border-box}
+.header-theme-btn>span{width:22px;height:22px;display:grid;place-items:center}
+.header-theme-btn svg,.avatar-btn svg{display:block!important;width:21px!important;height:21px!important;stroke:currentColor!important;stroke-width:1.9!important;flex:none}
+.avatar-btn{background:var(--card)!important;border:1px solid var(--border)!important;color:var(--text)!important}
+.action-grid{align-items:stretch}
+.action-btn{min-width:0;justify-content:center;gap:9px;padding:15px 5px!important}
+.action-icon{width:46px!important;height:46px!important;display:grid!important;place-items:center!important;flex:none}
+.action-icon svg{display:block;width:23px!important;height:23px!important;stroke:currentColor!important;stroke-width:1.9!important}
+.action-btn span{font-size:12px!important;line-height:1.25!important;text-align:center;font-weight:600!important}
+.assistant-banner{background:linear-gradient(125deg,#f5f0df 0%,#ece9d9 100%)!important;border:1px solid #e2ddc9!important;color:#252b28!important;margin-top:16px!important;padding:21px 22px!important;min-height:160px}
+.assistant-banner::after{content:none!important}
+.banner-label{color:#7c6a3b!important;font-size:11px!important;letter-spacing:1px!important;margin-bottom:8px!important}
+.banner-text{color:#303a36!important;max-width:100%!important;font-size:14px!important;line-height:1.55!important;padding-right:0}
+.banner-btn{display:inline-flex;align-items:center;justify-content:center;min-height:41px;margin-top:15px!important;padding:10px 17px!important;background:#263e35!important;color:white!important;font-weight:600!important}
+:root[data-theme="dark"] .assistant-banner{background:linear-gradient(125deg,#27372f,#222d29)!important;border-color:#415449!important;color:#f4f5ef!important}
+:root[data-theme="dark"] .banner-label{color:#e1c77c!important}
+:root[data-theme="dark"] .banner-text{color:#e2e9e2!important}
+:root[data-theme="dark"] .banner-btn{background:#e9d58c!important;color:#273329!important}
+.bottom-nav{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;align-items:center!important;justify-content:initial!important;padding:10px 7px max(12px,env(safe-area-inset-bottom))!important;column-gap:0!important}
+.bottom-nav>.nav-btn,.bottom-nav>.nav-center-btn{min-width:0;width:100%;box-sizing:border-box}
+.bottom-nav>.nav-btn{padding:4px 1px!important;min-height:61px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.nav-btn .nav-icon{width:26px;height:26px;display:grid!important;place-items:center!important;flex:none}
+.nav-btn .nav-icon svg{display:block;width:23px!important;height:23px!important;stroke:currentColor!important;stroke-width:1.85!important}
+.nav-btn .nav-label{font-size:11px!important;line-height:1.15!important;white-space:nowrap;text-align:center}
+.bottom-nav>.nav-center-btn{justify-self:center;width:53px!important;height:53px!important;min-height:53px;margin:-11px auto 0!important;border-radius:17px!important;display:grid!important;place-items:center!important;box-shadow:none!important}
+.nav-center-btn svg{width:26px!important;height:26px!important;display:block}
+#screen-cases .topbar button{color:var(--text)!important}
+@media(max-width:370px){.action-btn span{font-size:11px!important}.nav-btn .nav-label{font-size:10px!important}}
+
 </style>
 </head>
 <body>
@@ -1087,7 +1123,7 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
       </div>
       <div class="header-actions">
         <button class="header-theme-btn" id="header-theme-btn" type="button" onclick="toggleThemeQuick()" aria-label="Przełącz motyw" title="Zmień motyw"><span id="header-theme-icon"><i data-lucide="moon"></i></span></button>
-        <button class="avatar-btn" type="button" onclick="pokazModal()" aria-label="Otwórz ustawienia"><i data-lucide="settings-2"></i></button>
+        <button class="avatar-btn" type="button" onclick="pokazModal()" aria-label="Otwórz ustawienia"><i data-lucide="settings"></i></button>
       </div>
     </div>
 
@@ -1314,7 +1350,7 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
 
 <!-- TraceAI 3.0: image workspace, case files, PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" defer></script>
-<script src="app.js?v=3.0.2"></script>
+<script src="app.js?v=3.0.3"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initTurnstile&amp;render=explicit" async defer></script>
 </body>
 </html>

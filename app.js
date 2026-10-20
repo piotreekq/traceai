@@ -28,7 +28,45 @@ try { localStorage.removeItem('traceai_key'); } catch (e) { console.warn('Local 
 
 function makeId() { return 'sesja-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10); }
 function el(id) { return document.getElementById(id); }
-function iconRefresh() { if (window.lucide) window.lucide.createIcons(); }
+const ICON_PATHS = {
+  "arrow-up": "<path d=\"M12 19V5\"/><path d=\"m5 12 7-7 7 7\"/>",
+  "camera": "<path d=\"M14 4h-4L8 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-4z\"/><circle cx=\"12\" cy=\"14\" r=\"3\"/>",
+  "chevron-right": "<path d=\"m9 18 6-6-6-6\"/>",
+  "database": "<ellipse cx=\"12\" cy=\"5\" rx=\"9\" ry=\"3\"/><path d=\"M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12c0 1.7 4 3 9 3s9-1.3 9-3\"/>",
+  "download": "<path d=\"M12 3v12m-4-4 4 4 4-4M4 17v3h16v-3\"/>",
+  "file-text": "<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h8M8 9h2\"/>",
+  "flask-conical": "<path d=\"M9 3h6M10 3v7l-6.5 9a2 2 0 0 0 1.6 3h13.8a2 2 0 0 0 1.6-3L14 10V3M7 16h10\"/>",
+  "folder": "<path d=\"M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10H3z\"/>",
+  "footprints": "<path d=\"M8 18c-3 0-5 2-4 4 2 2 5 0 6-2M9 15c-2-1-3-3-3-5 0-2 1-4 3-4s3 2 3 4c0 3-1 5-3 5zM16 7c-2 0-3-2-3-4 0-1 1-2 2-2s2 1 2 3M18 12c-2-1-3-3-3-5 0-1 1-2 2-2s3 2 3 4c0 1-1 3-2 3M15 18c2-2 5-1 6 1 1 2-3 4-5 2\"/>",
+  "home": "<path d=\"m3 10 9-7 9 7v11h-6v-7H9v7H3z\"/>",
+  "images": "<rect x=\"7\" y=\"3\" width=\"14\" height=\"14\" rx=\"2\"/><path d=\"M4 7H3a1 1 0 0 0-1 1v12a2 2 0 0 0 2 2h12a1 1 0 0 0 1-1v-1\"/><circle cx=\"11\" cy=\"8\" r=\"1\"/><path d=\"m7 14 4-4 3 3 2-2 5 5\"/>",
+  "info": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 11v6M12 7h.01\"/>",
+  "monitor": "<rect x=\"2\" y=\"3\" width=\"20\" height=\"15\" rx=\"2\"/><path d=\"M8 22h8M12 18v4\"/>",
+  "moon": "<path d=\"M20.9 13a9 9 0 0 1-9.9-9.9A9 9 0 1 0 20.9 13z\"/>",
+  "palette": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"8\" cy=\"8\" r=\"1\"/><circle cx=\"15\" cy=\"7\" r=\"1\"/><circle cx=\"17\" cy=\"13\" r=\"1\"/><path d=\"M12 21a3 3 0 0 1 0-6h1a2 2 0 0 0 2-2 2 2 0 0 0-2-2\"/>",
+  "plus": "<path d=\"M12 5v14M5 12h14\"/>",
+  "scale": "<path d=\"M12 3v17M5 7h14M3 21h18M5 7 2 14a3 3 0 0 0 6 0L5 7zM19 7l-3 7a3 3 0 0 0 6 0l-3-7z\"/>",
+  "search": "<circle cx=\"10.8\" cy=\"10.8\" r=\"7\"/><path d=\"m16 16 5 5\"/>",
+  "settings": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M19 12a7 7 0 0 0-.2-1.5l2-1.8-2-3.5-2.5.8a7 7 0 0 0-2.6-1.5L13.2 2h-4l-.5 2.5a7 7 0 0 0-2.6 1.5l-2.5-.8-2 3.5 2 1.8a7 7 0 0 0 0 3l-2 1.8 2 3.5 2.5-.8a7 7 0 0 0 2.6 1.5L9.2 22h4l.5-2.5a7 7 0 0 0 2.6-1.5l2.5.8 2-3.5-2-1.8A7 7 0 0 0 19 12z\"/>",
+  "settings-2": "<path d=\"M4 7h9M17 7h3M4 17h3M11 17h9\"/><circle cx=\"15\" cy=\"7\" r=\"2\"/><circle cx=\"9\" cy=\"17\" r=\"2\"/>",
+  "shield-check": "<path d=\"M12 22s9-4 9-11V5l-9-3-9 3v6c0 7 9 11 9 11z\"/><path d=\"m9 12 2 2 4-4\"/>",
+  "sun": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"/>",
+  "target": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/>",
+  "trash-2": "<path d=\"M3 6h18M8 6V4h8v2M5 6l1 15h12l1-15M10 10v7M14 10v7\"/>",
+  "x": "<path d=\"M18 6 6 18M6 6l12 12\"/>"
+};
+function iconRefresh() {
+  for (const node of document.querySelectorAll('i[data-lucide]')) {
+    const name=node.getAttribute('data-lucide');const path=ICON_PATHS[name];if(!path)continue;
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    for(const [key,value] of Object.entries({xmlns:'http://www.w3.org/2000/svg',width:'24',height:'24',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.9','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'}))svg.setAttribute(key,value);
+    svg.innerHTML=path;
+    if(node.className)svg.setAttribute("class",node.className);
+    if(node.hasAttribute('style'))svg.setAttribute('style',node.getAttribute('style'));
+    node.replaceWith(svg);
+  }
+}
+
 function countWord(n) {
   if (n === 1) return 'analiza';
   if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) return 'analizy';
@@ -45,16 +83,29 @@ function extractTitle(text) {
 function setTheme() {
   const dark = themePreference === 'dark' || (themePreference === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-  const names = {system:'systemowy',light:'jasny',dark:'ciemny'};
-  el('theme-btn').textContent = 'Motyw: ' + names[themePreference] + ' (zmień)';
-  document.querySelector('meta[name="theme-color"]').content = dark ? '#14171E' : '#FAF9F6';
-  if (turnstileReady) renderTurnstile();
+  document.querySelector('meta[name="theme-color"]').content = dark ? '#131820' : '#FAF9F6';
+  document.querySelectorAll('[data-theme-choice]').forEach(button => {
+    const selected = button.dataset.themeChoice === themePreference;
+    button.setAttribute('aria-pressed', String(selected));
+    button.classList.toggle('is-active', selected);
+  });
+  const toggle = el('header-theme-btn');
+  if (toggle) {
+    toggle.setAttribute('aria-label', dark ? 'Włącz jasny motyw' : 'Włącz ciemny motyw');
+    toggle.setAttribute('title', dark ? 'Jasny motyw' : 'Ciemny motyw');
+    el('header-theme-icon').innerHTML = dark ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+    iconRefresh();
+  }
 }
-function cycleTheme() {
-  const themes=['system','light','dark'];
-  themePreference = themes[(themes.indexOf(themePreference)+1)%themes.length];
-  try { localStorage.setItem('traceai_theme', themePreference); } catch (_e) { /* Storage blocked */ }
+function chooseTheme(choice) {
+  if(!['system','light','dark'].includes(choice))return;
+  themePreference=choice;
+  try{localStorage.setItem('traceai_theme',choice)}catch(_e){}
   setTheme();
+}
+function toggleThemeQuick() {
+  const currentDark = document.documentElement.dataset.theme === 'dark';
+  chooseTheme(currentDark ? 'light' : 'dark');
 }
 function pokazModal() { el('modal').style.display='flex'; iconRefresh(); }
 function ukryjModal() { el('modal').style.display='none'; }
@@ -63,28 +114,47 @@ function configured() {
     CONFIG.TURNSTILE_SITE_KEY.length > 15 && !CONFIG.TURNSTILE_SITE_KEY.includes('YOUR_PUBLIC_');
 }
 function showConfigStatus() {
-  el('connection-status').textContent = configured()
-    ? 'Usługa skonfigurowana. Klucz API jest przechowywany na serwerze, nie w przeglądarce.'
-    : 'Aplikacja demonstracyjna: administrator musi ustawić adres Workera i publiczny identyfikator Turnstile w app.js.';
-  el('turnstile-status').textContent = configured() ? 'Weryfikacja przeciw automatycznym zapytaniom' : 'Konfiguracja serwera jest jeszcze wymagana';
+  const status=el('connection-status');
+  if(status) status.textContent = configured() ? 'Gemini obsługiwane przez bezpieczne API' : 'Połączenie z API wymaga konfiguracji administratora';
 }
+let pendingVerification=null;
 window.initTurnstile = () => { turnstileReady=true; renderTurnstile(); };
 function renderTurnstile() {
-  if (!configured() || !window.turnstile) return;
-  if (turnstileWidgetId !== null) { try {window.turnstile.remove(turnstileWidgetId);}catch(_e){} }
-  turnstileToken = '';
-  turnstileWidgetId = window.turnstile.render('#turnstile-widget', {
-    sitekey: CONFIG.TURNSTILE_SITE_KEY,
-    theme: document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
-    callback: token => {turnstileToken = token; el('turnstile-status').textContent='Weryfikacja ukończona';},
-    'expired-callback': () => {turnstileToken='';el('turnstile-status').textContent='Weryfikacja wygasła — ponów ją';},
-    'error-callback': () => {turnstileToken='';el('turnstile-status').textContent='Nie udało się załadować weryfikacji';}
+  if(!configured() || !window.turnstile)return;
+  if(turnstileWidgetId!==null){try{window.turnstile.remove(turnstileWidgetId)}catch(_e){}}
+  turnstileToken='';
+  turnstileWidgetId=window.turnstile.render('#turnstile-widget',{
+    sitekey:CONFIG.TURNSTILE_SITE_KEY,
+    execution:'execute',
+    callback:token=>{
+      turnstileToken=token;
+      if(pendingVerification){const pending=pendingVerification;pendingVerification=null;clearTimeout(pending.timeout);pending.resolve(token);}
+    },
+    'expired-callback':()=>{turnstileToken='';},
+    'error-callback':()=>{
+      turnstileToken='';
+      if(pendingVerification){const pending=pendingVerification;pendingVerification=null;clearTimeout(pending.timeout);pending.reject(new Error('Weryfikacja bezpieczeństwa nie powiodła się. Spróbuj ponownie.'));}
+    }
+  });
+}
+function verifyInBackground(){
+  if(!turnstileReady||turnstileWidgetId===null||!window.turnstile)return Promise.reject(new Error('Trwa ładowanie ochrony antyspamowej. Spróbuj za chwilę.'));
+  if(pendingVerification)return Promise.reject(new Error('Weryfikacja już trwa.'));
+  return new Promise((resolve,reject)=>{
+    const timeout=setTimeout(()=>{
+      pendingVerification=null;
+      reject(new Error('Weryfikacja trwa zbyt długo. Spróbuj ponownie.'));
+    },25000);
+    pendingVerification={resolve,reject,timeout};
+    try{window.turnstile.execute(turnstileWidgetId);}catch(_e){
+      clearTimeout(timeout);pendingVerification=null;
+      reject(new Error('Nie udało się uruchomić weryfikacji. Odśwież stronę.'));
+    }
   });
 }
 function resetTurnstile() {
   turnstileToken='';
-  if (window.turnstile && turnstileWidgetId !== null) window.turnstile.reset(turnstileWidgetId);
-  el('turnstile-status').textContent='Potwierdź ponownie weryfikację';
+  if(window.turnstile&&turnstileWidgetId!==null){try{window.turnstile.reset(turnstileWidgetId)}catch(_e){}}
 }
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(e=>e.classList.toggle('active',e.id===id));
@@ -275,7 +345,7 @@ function renderWiadomosc(tekst,rola='ai') {
 }
 function typing(active) {
   el('typing')?.remove();
-  if(active){const d=document.createElement('div');d.className='typing-card';d.id='typing';d.textContent='Trwa analiza zdjęcia…';el('result-area').appendChild(d);}
+  if(active){const d=document.createElement('div');d.className='typing-card';d.id='typing';d.textContent='Przygotowuję analizę zdjęcia…';el('result-area').appendChild(d);}
 }
 function quickSend(t) {el('msg-input').value=t;autoResize(el('msg-input')); if(currentImages[0] && (currentMode!=='porownanie'||currentImages[1]))wyslij();else el('msg-input').focus();}
 function autoResize(element) {element.style.height='auto';element.style.height=Math.min(element.scrollHeight,80)+'px';}
@@ -285,14 +355,14 @@ async function wyslij() {
   const text=el('msg-input').value.trim();
   if(!currentImages[0] || (currentMode==='porownanie'&&!currentImages[1])){renderWiadomosc('Najpierw dodaj '+(currentMode==='porownanie'?'dwa zdjęcia śladów.':'zdjęcie śladu.'),'error');return;}
   if(!configured()){renderWiadomosc('Administrator musi najpierw podłączyć serwer analizy i Turnstile.','error');return;}
-  if(!turnstileToken){renderWiadomosc('Ukończ weryfikację bezpieczeństwa pod oknem wyników.','error');return;}
   if(text.length>3000){renderWiadomosc('Skróć pytanie do 3000 znaków.','error');return;}
   busy=true;el('send-btn').disabled=true;
   renderWiadomosc(text||'Przeanalizuj zdjęcie','user');typing(true);
   const prior=conversation.slice(-6);
   const imagePayload=currentImages.slice(0,currentMode==='porownanie'?2:1);
   try {
-    const response=await fetch(CONFIG.API_ENDPOINT, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:currentMode,text,images:imagePayload,conversation:prior,turnstileToken})});
+    const verifiedToken=await verifyInBackground();
+    const response=await fetch(CONFIG.API_ENDPOINT, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:currentMode,text,images:imagePayload,conversation:prior,turnstileToken:verifiedToken})});
     const result=await response.json().catch(()=>({error:'Nieprawidłowa odpowiedź serwera.'}));
     if(!response.ok || !result.reply)throw Error(result.error||'Nie udało się wykonać analizy.');
     typing(false);

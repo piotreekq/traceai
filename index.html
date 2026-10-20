@@ -933,6 +933,91 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
 .header-actions button svg {height:21px;width:21px;stroke:currentColor}
 .qpill svg {color:var(--text)}
 @media(max-width:350px){.nav-btn .nav-label{font-size:10px}.bottom-nav{padding-left:1px;padding-right:1px}}
+
+/* TraceAI 3.0 — non-destructive inspection workspace */
+.editor-open {margin:0 24px 12px;display:none;gap:8px}
+.editor-open.visible {display:flex}
+.editor-open button {flex:1;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--text);font:600 13px var(--sans);padding:11px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer}
+.editor-open svg{width:19px;height:19px}
+#screen-editor .topbar {padding-top:16px;padding-bottom:12px}
+.editor-body {min-height:0;flex:1;overflow-y:auto;padding:0 16px 100px}
+.editor-stage{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:19px;background:var(--card);margin:4px 0 10px}
+.editor-stage canvas{display:block;width:100%;height:320px;touch-action:none;cursor:crosshair}
+.editor-hint{position:absolute;bottom:12px;left:12px;padding:5px 9px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--text2);font-size:11px;pointer-events:none}
+.editor-panel{border:1px solid var(--border);border-radius:17px;background:var(--card);padding:12px;margin-bottom:10px}
+.editor-label{font-size:12px;font-weight:650;color:var(--text2);margin-bottom:9px}
+.editor-tools{display:flex;gap:7px;flex-wrap:wrap}
+.editor-tool{border:1px solid var(--border);border-radius:11px;padding:8px 10px;display:inline-flex;gap:6px;align-items:center;background:var(--bg);color:var(--text);font:500 12px var(--sans);cursor:pointer}
+.editor-tool[aria-pressed="true"]{background:var(--yellow);color:#392c0c;border-color:var(--yellow)}
+.editor-tool svg{width:16px;height:16px;stroke:currentColor}
+.editor-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;color:var(--text2);font-size:12px}
+.editor-row input[type="range"]{flex:1;min-width:100px;accent-color:var(--text)}
+.editor-stat{font-size:12px;line-height:1.5;color:var(--text2);margin-top:9px}
+.editor-stat strong{color:var(--text)}
+.editor-action{font:600 12px var(--sans);background:var(--text);color:var(--bg);border:0;border-radius:11px;padding:10px 12px;cursor:pointer}
+.editor-action.secondary{background:var(--bg);color:var(--text);border:1px solid var(--border)}
+.editor-annotations{list-style:none;display:flex;flex-direction:column;gap:6px;margin:8px 0 0;padding:0}
+.editor-annotations li{font-size:12px;padding:8px 10px;background:var(--bg);border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--text)}
+.editor-annotations button{background:transparent;border:0;color:var(--text2);cursor:pointer;padding:6px}
+.editor-warning{font-size:11px;color:var(--text2);line-height:1.6;padding:4px 2px 12px}
+@media (min-height:950px){.editor-stage canvas{height:380px}}
+
+/* TraceAI 3.0 — local case management */
+#screen-cases .topbar{padding-bottom:13px}
+.case-scroll{flex:1;overflow-y:auto;padding:0 18px 100px}
+.case-search{width:100%;background:var(--card);color:var(--text);border:1px solid var(--border);padding:13px 15px;border-radius:14px;font:14px var(--sans);outline-offset:2px}
+.case-filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 16px}
+.case-filters select{width:100%;min-width:0;border:1px solid var(--border);background:var(--card);color:var(--text);padding:12px 9px;border-radius:12px;font:12px var(--sans)}
+.case-card{display:flex;gap:13px;padding:16px 15px;margin:0 0 10px;background:var(--card);border:1px solid var(--border);border-radius:17px;cursor:pointer;align-items:flex-start}
+.case-card:active{transform:scale(.995)}
+.case-card-icon{width:41px;height:41px;border-radius:13px;background:var(--yellow);color:#4b3a05;display:grid;place-items:center;flex:none}
+.case-card-icon svg{height:21px;width:21px}
+.case-card-content{flex:1;min-width:0}
+.case-card-title{font-weight:650;font-size:14px;color:var(--text);overflow-wrap:anywhere}
+.case-card-meta{color:var(--text2);font-size:11px;margin-top:5px;line-height:1.5}
+.case-card-top{display:flex;gap:6px;align-items:center;justify-content:space-between}
+.case-status{font-size:10px;letter-spacing:.2px;padding:4px 8px;border-radius:30px;background:var(--bg);color:var(--text2);border:1px solid var(--border);white-space:nowrap}
+.case-card-actions{display:flex;gap:6px;margin-top:10px;align-items:center}
+.case-mini-btn{background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:9px;font:12px var(--sans);cursor:pointer}
+.case-mini-btn.danger{color:#a33438}
+.case-empty{padding:34px 14px;text-align:center;color:var(--text2);font-size:13px}
+.case-form{display:none;margin-bottom:16px;padding:16px;border:1px solid var(--border);border-radius:19px;background:var(--card)}
+.case-form.visible{display:block}
+.case-form h3{font-size:16px;margin:0 0 13px}
+.case-form label{display:block;font-size:12px;color:var(--text2);font-weight:600;margin-top:10px}
+.case-form input,.case-form select,.case-form textarea{display:block;width:100%;font:14px var(--sans);background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:11px;padding:11px;margin-top:5px;resize:vertical}
+.case-form-actions{display:flex;gap:8px;margin-top:14px}
+.case-form-actions button{flex:1;border:1px solid var(--border);padding:11px;border-radius:12px;font:600 13px var(--sans);background:var(--bg);color:var(--text)}
+.case-form-actions button:first-child{background:var(--text);color:var(--bg)}
+.case-pill{display:inline-flex;gap:5px;align-items:center;background:var(--card);color:var(--text2);border:1px solid var(--border);padding:7px 11px;border-radius:12px;font-size:11px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+#case-current-line{display:none;padding:0 23px 9px}
+#case-current-line.visible{display:flex}
+#case-current-line button{background:transparent;border:0;cursor:pointer;color:var(--text2);font:12px var(--sans);text-decoration:underline}
+
+/* Print-optimized, case-oriented PDF report */
+.case-report-link{display:inline-flex;align-items:center;gap:6px;padding:8px 10px;background:var(--text);color:var(--bg);border:0;border-radius:10px;font:600 12px var(--sans);cursor:pointer}
+.case-report-link svg{height:15px;width:15px}
+#print-section {display:none}
+@page{size:A4;margin:15mm}
+@media print {
+  html,body {background:#fff!important;color:#111!important;max-width:none!important;width:100%!important;overflow:visible!important;height:auto!important;display:block!important}
+  .screen,.modal-overlay,.bottom-nav {display:none!important}
+  #print-section{display:block!important;position:static!important;width:100%!important;max-width:none!important;visibility:visible!important;padding:0!important;margin:0!important;background:#fff!important;color:#111!important;line-height:1.55}
+  #print-section,#print-section *{visibility:visible!important}
+  #print-section h1{font:700 24px Georgia,serif;margin:0 0 10px}
+  #print-section h2{font:700 16px Georgia,serif;margin:22px 0 9px;border-bottom:1px solid #ccc;padding-bottom:6px;break-after:avoid-page;page-break-after:avoid}
+  #print-section h3{break-after:avoid-page;page-break-after:avoid}
+  #print-section p{font-size:11px;margin:7px 0}
+  #print-section .report-metadata{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0}
+  #print-section .report-metadata>div{border:1px solid #bbb;padding:7px 10px}
+  #print-section .report-metadata small{display:block;color:#666}
+  #print-section figure{page-break-inside:avoid;break-inside:avoid;margin:12px 0}
+  #print-section figure img{display:block;max-width:100%;max-height:100mm;height:auto;object-fit:contain;border:1px solid #d4d4d4}
+  #print-section figcaption{font-size:10px;color:#555;margin-top:6px}
+  #print-section ol,#print-section ul{font-size:11px;line-height:1.7}
+  #print-section .report-answer{white-space:pre-wrap;font-size:11px;padding:0 0 13px;break-inside:auto}
+  #print-section .report-disclaimer{background:#eee!important;color:#333!important;padding:10px 14px;border-left:3px solid #555;font-size:10px}
+}
 </style>
 </head>
 <body>
@@ -954,7 +1039,7 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
     <div class="settings-section">
       <div class="settings-section-title"><span class="settings-symbol"><i data-lucide="database"></i></span><div><strong>Moje dane</strong><span>Historia zapisana na tym urządzeniu</span></div></div>
       <button class="settings-row" type="button" onclick="exportHistory()"><i data-lucide="download"></i><span>Eksportuj historię</span><i data-lucide="chevron-right"></i></button>
-      <button class="settings-row danger" type="button" onclick="wyczyscHistorie()"><i data-lucide="trash-2"></i><span>Usuń historię</span><i data-lucide="chevron-right"></i></button>
+      <button class="settings-row danger" type="button" onclick="wyczyscHistorie()"><i data-lucide="trash-2"></i><span>Usuń sprawy i analizy</span><i data-lucide="chevron-right"></i></button>
     </div>
     <div class="settings-footnote"><i data-lucide="shield-check"></i><span id="connection-status">Gemini obsługiwane przez bezpieczne API</span></div>
     <p class="settings-privacy">Analizy służą wyłącznie jako wsparcie specjalisty. <a href="privacy.html" target="_blank" rel="noopener">Prywatność i wykorzystanie zdjęć</a></p>
@@ -1032,7 +1117,7 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
     </div>
 
     <div class="section-header" style="margin-top: 16px;">
-      <h2>Ostatnie analizy</h2>
+      <h2>Ostatnie sprawy</h2>
       <span id="recent-count">0 analiz</span>
     </div>
 
@@ -1052,12 +1137,12 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
       <span class="nav-icon"><i data-lucide="camera"></i></span>
       <span class="nav-label">Skanuj</span>
     </button>
-    <button class="nav-center-btn" onclick="goScan('')">
+    <button class="nav-center-btn" onclick="createNewCase()">
       <i data-lucide="plus"></i>
     </button>
-    <button class="nav-btn" onclick="goHistory()">
+    <button class="nav-btn" onclick="goCases()">
       <span class="nav-icon"><i data-lucide="folder"></i></span>
-      <span class="nav-label">Historia</span>
+      <span class="nav-label">Sprawy</span>
     </button>
     <button class="nav-btn" onclick="pokazModal()">
       <span class="nav-icon"><i data-lucide="settings"></i></span>
@@ -1093,6 +1178,10 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
     </div>
   </div>
 
+  <div class="editor-open" id="editor-open"><button type="button" onclick="openEditor()"><i data-lucide="scan-search"></i> Otwórz narzędzia obrazu</button></div>
+
+  <div id="case-current-line"><span id="case-current-label" class="case-pill"></span><button type="button" onclick="editActiveCase()">Edytuj</button><button type="button" onclick="exportCasePdf(activeCase?.id)">Raport PDF</button></div>
+
   <div class="quick-prompts">
     <button class="qpill" onclick="quickSend('Przeanalizuj szczegółowo ten ślad traseologiczny.')"><i data-lucide="search" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;"></i> Analiza</button>
     <button class="qpill" onclick="quickSend('Jaka jest wartość dowodowa tego śladu?')"><i data-lucide="scale" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;"></i> Wartość dowodowa</button>
@@ -1121,6 +1210,66 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
   </div>
 </div>
 
+<div class="screen" id="screen-editor">
+  <div class="topbar">
+    <button class="back-btn" onclick="closeEditor()">← Wróć</button>
+    <div style="font-weight:650;font-size:15px">Pracownia obrazu</div>
+    <button class="back-btn" onclick="downloadAnnotatedImage()" title="Eksportuj obraz z oznaczeniami">Eksportuj</button>
+  </div>
+  <div class="editor-body">
+    <div class="editor-stage"><canvas id="editor-canvas" aria-label="Obraz śladu; dotknij, aby oznaczyć cechę"></canvas><div class="editor-hint" id="editor-hint">Przesuń obraz lub wybierz narzędzie</div></div>
+    <div class="editor-panel">
+      <div class="editor-label">Widok i nawigacja</div>
+      <div class="editor-tools">
+        <button type="button" class="editor-tool" onclick="zoomEditor(-.2)" aria-label="Pomniejsz">−</button>
+        <button type="button" class="editor-tool" onclick="zoomEditor(.2)" aria-label="Powiększ">+</button>
+        <button type="button" class="editor-tool" onclick="rotateEditor(-90)">↶ Obrót</button>
+        <button type="button" class="editor-tool" onclick="rotateEditor(90)">↷ Obrót</button>
+        <button type="button" class="editor-tool" onclick="resetEditorView()">Reset widoku</button>
+      </div>
+      <div id="editor-compare-options" hidden>
+        <div class="editor-row"><span>Widok porównania</span><button type="button" class="editor-tool" onclick="switchEditorLayout()" id="editor-layout-btn">Nakładka</button></div>
+        <div class="editor-row"><span>Zdjęcie B</span><input type="range" id="editor-opacity" min="0" max="100" value="50" aria-label="Przezroczystość drugiego zdjęcia" oninput="setEditorOpacity(this.value)"><span id="editor-opacity-label">50%</span></div>
+        <div class="editor-row"><span>Obrót B</span><button class="editor-tool" onclick="rotateSecond(-1)">−1°</button><button class="editor-tool" onclick="rotateSecond(1)">+1°</button><button class="editor-tool" onclick="moveSecond(-8,0)">←</button><button class="editor-tool" onclick="moveSecond(8,0)">→</button><button class="editor-tool" onclick="moveSecond(0,-8)">↑</button><button class="editor-tool" onclick="moveSecond(0,8)">↓</button></div>
+      </div>
+    </div>
+    <div class="editor-panel">
+      <div class="editor-label">Zaznaczanie cech i pomiary</div>
+      <div class="editor-tools" role="group" aria-label="Wybierz narzędzie edycji">
+        <button type="button" class="editor-tool" data-editor-tool="pan" aria-pressed="true" onclick="setEditorTool('pan')">Przesuń</button>
+        <button type="button" class="editor-tool" data-editor-tool="point" aria-pressed="false" onclick="setEditorTool('point')">Punkt</button>
+        <button type="button" class="editor-tool" data-editor-tool="line" aria-pressed="false" onclick="setEditorTool('line')">Linia</button>
+        <button type="button" class="editor-tool" data-editor-tool="rect" aria-pressed="false" onclick="setEditorTool('rect')">Obszar</button>
+        <button type="button" class="editor-tool" data-editor-tool="measure" aria-pressed="false" onclick="setEditorTool('measure')">Linijka</button>
+        <button type="button" class="editor-tool" data-editor-tool="calibrate" aria-pressed="false" onclick="setEditorTool('calibrate')">Kalibruj</button>
+      </div>
+      <div class="editor-stat" id="editor-calibration">Brak kalibracji — pomiary będą niedostępne.</div>
+      <div class="editor-row"><button class="editor-action secondary" type="button" onclick="undoEditorAnnotation()">Cofnij oznaczenie</button><button class="editor-action secondary" type="button" onclick="clearEditorCalibration()">Usuń kalibrację</button></div>
+      <ul class="editor-annotations" id="editor-annotations"></ul>
+    </div>
+    <div class="editor-warning">Pomiary odnoszą się do płaszczyzny skali widocznej na zdjęciu. Perspektywa, deformacja i jakość fotografii mogą powodować istotne błędy. Oznaczenia nie modyfikują oryginalnego pliku.</div>
+  </div>
+</div>
+
+<div class="screen" id="screen-cases">
+  <div class="topbar"><button class="back-btn" onclick="goHome()">← Wróć</button><strong style="font-size:16px">Sprawy</strong><button class="back-btn" onclick="createNewCase()">+ Nowa</button></div>
+  <div class="case-scroll">
+    <form id="case-form" class="case-form" onsubmit="saveCaseForm(event)">
+      <h3>Dane sprawy</h3>
+      <label for="case-number">Numer sprawy</label><input id="case-number" maxlength="80" placeholder="np. TR/2026/001">
+      <label for="case-title">Nazwa sprawy</label><input id="case-title" maxlength="120" required placeholder="np. Ślad przy wejściu">
+      <label for="case-kind">Rodzaj śladu</label><select id="case-kind"><option value="obuwie">Obuwie</option><option value="opona">Opony</option><option value="stopa">Bosa stopa</option><option value="inne">Inne</option></select>
+      <label for="case-status">Status</label><select id="case-status"><option value="szkic">Szkic</option><option value="w_toku">W toku</option><option value="zakonczona">Zakończona</option></select>
+      <label for="case-notes">Notatki</label><textarea id="case-notes" maxlength="3000" rows="3" placeholder="Opcjonalne uwagi do sprawy"></textarea>
+      <div class="case-form-actions"><button type="submit">Zapisz sprawę</button><button type="button" onclick="hideCaseForm()">Anuluj</button></div>
+    </form>
+    <input class="case-search" id="case-query" type="search" placeholder="Szukaj po numerze i nazwie…" oninput="renderCases()" aria-label="Wyszukaj sprawę">
+    <div class="case-filters"><select id="case-filter-type" onchange="renderCases()" aria-label="Filtruj rodzaj śladu"><option value="">Wszystkie rodzaje</option><option value="obuwie">Obuwie</option><option value="opona">Opony</option><option value="stopa">Bosa stopa</option><option value="inne">Inne</option></select><select id="case-filter-status" onchange="renderCases()" aria-label="Filtruj status"><option value="">Wszystkie statusy</option><option value="szkic">Szkice</option><option value="w_toku">W toku</option><option value="zakonczona">Zakończone</option></select></div>
+    <div class="case-filters"><select id="case-sort" onchange="renderCases()" aria-label="Sortuj sprawy"><option value="recent">Ostatnio zmieniane</option><option value="oldest">Najstarsze</option><option value="name">Alfabetycznie</option></select><button type="button" class="case-mini-btn" onclick="goHistory()">Wszystkie analizy</button></div>
+    <div id="case-list"></div>
+  </div>
+</div>
+
 <div class="screen" id="screen-history">
   <div class="topbar">
     <button class="back-btn" onclick="goHome()">← Wróć</button>
@@ -1134,7 +1283,8 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
   </div>
 </div>
 
-<script src="app.js?v=3.0-stage1"></script>
+<!-- TraceAI 3.0: image workspace, case files, PDF -->
+<script src="app.js?v=3.0.1"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initTurnstile&amp;render=explicit" async defer></script>
 </body>
 </html>

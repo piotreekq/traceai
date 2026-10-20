@@ -634,6 +634,18 @@ async function exportCasePdf(id) {
   const total=pdf.internal.getNumberOfPages();
   for(let p=1;p<=total;p++){pdf.setPage(p);pdf.setFontSize(8);pdf.setTextColor(130);pdf.text('TraceAI | '+(c.number||'sprawa')+' | '+p+' / '+total,margin,pageH-9);}
   const url=URL.createObjectURL(pdf.output('blob'));
+  // Open the actual PDF directly, without an intermediate preview modal.
+  const preview=window.open(url,'_blank');
+  if(!preview){
+    const link=document.createElement('a');
+    link.href=url;link.target='_blank';link.rel='noopener';link.textContent='Otwórz wygenerowany raport PDF';
+    link.style.cssText='display:block;padding:16px;text-align:center;font-weight:700;color:var(--text)';
+    const existing=document.getElementById('pdf-direct-link');if(existing)existing.remove();
+    link.id='pdf-direct-link';document.body.appendChild(link);
+    alert('Raport jest gotowy. Dotknij linku „Otwórz wygenerowany raport PDF” na dole strony.');
+  }
+  setTimeout(()=>URL.revokeObjectURL(url),300000);
+  return;
   const overlay=document.createElement('div');overlay.className='pdf-preview-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-label','Podglad raportu PDF');
   const card=document.createElement('div');card.className='pdf-preview-card';
   const header=document.createElement('div');header.className='pdf-preview-header';

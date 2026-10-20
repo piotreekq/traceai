@@ -4,9 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#FAF9F6">
-<script>/* Apply saved theme before paint to avoid a flash of light UI. */
-try { const choice=localStorage.getItem('traceai_theme')||'system'; if(choice==='dark'||(choice==='system'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.dataset.theme='dark'; } catch(_e){}
-</script>
+<script>try{const theme=localStorage.getItem('traceai_theme')||'system';if(theme==='dark'||(theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.dataset.theme='dark';}catch(e){}</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="TraceAI">
@@ -764,6 +762,8 @@ body {
 .settings-action {display:flex;align-items:center;justify-content:center;gap:8px}
 .settings-action svg {width:17px;height:17px}
 .settings-info {margin:12px 0;color:var(--text2);font-size:12px;line-height:1.5;padding:10px 12px;border-radius:12px;background:var(--bg)}
+.turnstile-wrap {display:flex;align-items:center;gap:10px;padding:8px 24px 2px;flex-shrink:0;flex-wrap:wrap}
+#turnstile-status {font-size:11px;color:var(--text2)}
 .disclaimer {font-size:10px;color:var(--text2);line-height:1.35;padding:3px 24px 0;flex-shrink:0}
 #screen-scan .result-scroll {padding-bottom:10px}
 #screen-scan .input-bar {padding-top:8px}
@@ -900,6 +900,39 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
 .settings-privacy a {color:var(--text2)!important;text-decoration:underline;text-underline-offset:2px}
 @media(max-width:360px){.action-btn span{font-size:10px}.header-actions{gap:5px}.theme-options button{gap:3px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* TraceAI 3.0 stage 1: aligned navigation, readable icons, unobtrusive notices */
+.bottom-nav {
+  display:grid; grid-template-columns:repeat(5,minmax(0,1fr));
+  align-items:center;justify-items:center;gap:0;
+  padding:9px 8px max(13px, env(safe-area-inset-bottom));
+  min-height:76px;
+}
+.nav-btn {width:100%;min-width:0;min-height:56px;padding:5px 1px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  gap:5px;line-height:1.2;text-align:center;color:var(--text2);
+}
+.nav-btn .nav-icon {display:flex;justify-content:center;align-items:center;width:25px;height:25px;margin:0 auto}
+.nav-btn .nav-icon svg {width:23px;height:23px;display:block;stroke:currentColor!important}
+.nav-btn .nav-label {font-size:11px;font-weight:500;white-space:nowrap;line-height:16px}
+.nav-btn.active .nav-label {color:var(--text);font-weight:650}
+.nav-center-btn {margin:0;transform:translateY(-6px);display:grid;place-items:center;
+  width:51px;height:51px;border-radius:50%;background:var(--text);color:var(--bg)}
+.nav-center-btn svg {width:25px;height:25px;stroke:currentColor}
+.nav-center-btn:active {transform:translateY(-6px) scale(.94)}
+.inline-notice {display:flex;align-items:flex-start;gap:12px;margin:0 0 12px;padding:13px 15px;
+  border:1px solid color-mix(in srgb,var(--pink) 50%,var(--border));
+  border-radius:16px;background:color-mix(in srgb,var(--pink) 7%,var(--card));
+  color:var(--text);font-size:13px;line-height:1.5;
+}
+.notice-symbol {display:grid;place-items:center;flex:none;width:22px;height:22px;
+  border-radius:50%;background:var(--pink);color:#69203c;font-weight:700;font-size:12px}
+.scan-empty {text-align:center;padding:18px 0 12px;color:var(--text3);font-size:13px}
+.user-question {background:color-mix(in srgb,var(--blue) 8%,var(--card))}
+.recent-dot svg {stroke:var(--text);width:21px;height:21px}
+.header-actions button svg {height:21px;width:21px;stroke:currentColor}
+.qpill svg {color:var(--text)}
+@media(max-width:350px){.nav-btn .nav-label{font-size:10px}.bottom-nav{padding-left:1px;padding-right:1px}}
 </style>
 </head>
 <body>
@@ -1069,9 +1102,7 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
   </div>
 
   <div class="result-scroll" id="result-area">
-    <div style="text-align:center; padding: 16px 0 8px; color: var(--text3); font-size: 13px;">
-      Wgraj zdjęcie i zadaj pytanie
-    </div>
+    <div class="scan-empty">Wybierz zdjęcie i rozpocznij analizę.</div>
   </div>
 
   <div id="turnstile-widget" class="turnstile-runtime" aria-hidden="true"></div>
@@ -1103,7 +1134,7 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {out
   </div>
 </div>
 
-<script src="app.js?v=2.1"></script>
+<script src="app.js?v=3.0-stage1"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initTurnstile&amp;render=explicit" async defer></script>
 </body>
 </html>

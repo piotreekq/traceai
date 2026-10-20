@@ -37,7 +37,7 @@ const ICON_PATHS = {
   "file-text": "<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h8M8 9h2\"/>",
   "flask-conical": "<path d=\"M9 3h6M10 3v7l-6.5 9a2 2 0 0 0 1.6 3h13.8a2 2 0 0 0 1.6-3L14 10V3M7 16h10\"/>",
   "folder": "<path d=\"M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10H3z\"/>",
-  "footprints": "<path d=\"M8 18c-3 0-5 2-4 4 2 2 5 0 6-2M9 15c-2-1-3-3-3-5 0-2 1-4 3-4s3 2 3 4c0 3-1 5-3 5zM16 7c-2 0-3-2-3-4 0-1 1-2 2-2s2 1 2 3M18 12c-2-1-3-3-3-5 0-1 1-2 2-2s3 2 3 4c0 1-1 3-2 3M15 18c2-2 5-1 6 1 1 2-3 4-5 2\"/>",
+  "footprints": "<circle cx=\"9\" cy=\"9\" r=\"5\"/><path d=\"m13 13 6 6\"/><path d=\"M3 20h8\"/>",
   "home": "<path d=\"m3 10 9-7 9 7v11h-6v-7H9v7H3z\"/>",
   "images": "<rect x=\"7\" y=\"3\" width=\"14\" height=\"14\" rx=\"2\"/><path d=\"M4 7H3a1 1 0 0 0-1 1v12a2 2 0 0 0 2 2h12a1 1 0 0 0 1-1v-1\"/><circle cx=\"11\" cy=\"8\" r=\"1\"/><path d=\"m7 14 4-4 3 3 2-2 5 5\"/>",
   "info": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 11v6M12 7h.01\"/>",
@@ -59,7 +59,7 @@ function iconRefresh() {
   for (const node of document.querySelectorAll('i[data-lucide]')) {
     const name=node.getAttribute('data-lucide');const path=ICON_PATHS[name];if(!path)continue;
     const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-    for(const [key,value] of Object.entries({xmlns:'http://www.w3.org/2000/svg',width:'24',height:'24',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.9','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'}))svg.setAttribute(key,value);
+    for(const [key,value] of Object.entries({xmlns:'http://www.w3.org/2000/svg',width:'24',height:'24',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.85','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'}))svg.setAttribute(key,value);
     svg.innerHTML=path;
     if(node.className)svg.setAttribute("class",node.className);
     if(node.hasAttribute('style'))svg.setAttribute('style',node.getAttribute('style'));
@@ -178,7 +178,7 @@ function resetPreview() {
 }
 function newSession() {
   sessionId=makeId(); conversation=[]; currentImages=[null,null]; resetPreview();
-  el('result-area').innerHTML='<div style="text-align:center;padding:16px 0;color:var(--text3);font-size:13px">Wybierz zdjęcie i rozpocznij analizę.</div>';
+  el('result-area').innerHTML='<div class="scan-empty">Wybierz zdjęcie i rozpocznij analizę.</div>';
   el('msg-input').value='';autoResize(el('msg-input'));
 }
 function goScan(prefill='') {
@@ -328,6 +328,7 @@ async function wgrajZdjecie(event,index=0) {
     // Choosing another photo after a completed dialogue starts a clean case.
     if(conversation.length){newSession();}
     currentImages[index]=img;
+    el('result-area').querySelectorAll('[data-notice]').forEach(n=>n.remove());
     const suffix=index===0?'':'-2';const preview=el('img-preview'+suffix);
     preview.src=`data:${img.mimeType};base64,${img.data}`;
     preview.classList.add('visible');el('upload-placeholder'+suffix).classList.add('hidden');
@@ -336,18 +337,33 @@ async function wgrajZdjecie(event,index=0) {
 }
 function renderWiadomosc(tekst,rola='ai') {
   const area=el('result-area');
-  if(area.firstElementChild?.tagName==='DIV' && !area.firstElementChild.classList.contains('result-card') && !area.firstElementChild.classList.contains('typing-card') && area.children.length===1)area.innerHTML='';
-  const card=document.createElement('div');card.className=rola==='error'?'result-card error':'result-card';
-  const heading=document.createElement('h3');heading.textContent=rola==='user'?'Twoje pytanie':rola==='error'?'Komunikat':'Analiza AI';
-  const body=document.createElement('p');body.className='answer';body.innerHTML=formatText(tekst);
-  card.append(heading,body);area.appendChild(card);area.scrollTop=area.scrollHeight;
+  const normalized=String(tekst||'').replace(/^⚠️\s*/, '').trim();
+  const last=area.lastElementChild;
+  // Errors/validation notices are transient. Do not stack or duplicate notices.
+  if(rola==='error' && last?.dataset.notice===normalized) return last;
+  if(rola==='error') area.querySelectorAll('[data-notice]').forEach(n=>n.remove());
+  if(rola!=='error') area.querySelectorAll('[data-notice]').forEach(n=>n.remove());
+  if(area.querySelector('.scan-empty')) area.querySelector('.scan-empty').remove();
+  const card=document.createElement('div');
+  card.className=rola==='error'?'inline-notice':rola==='user'?'result-card user-question':'result-card';
+  if(rola==='error'){
+    card.dataset.notice=normalized;
+    card.setAttribute('role','status');
+    card.innerHTML='<span class="notice-symbol" aria-hidden="true">!</span><span></span>';
+    card.lastElementChild.textContent=normalized;
+  }else{
+    const heading=document.createElement('h3');heading.textContent=rola==='user'?'Twoje pytanie':'Analiza AI';
+    const body=document.createElement('p');body.className='answer';body.innerHTML=formatText(normalized);
+    card.append(heading,body);
+  }
+  area.appendChild(card);area.scrollTop=area.scrollHeight;
   return card;
 }
 function typing(active) {
   el('typing')?.remove();
   if(active){const d=document.createElement('div');d.className='typing-card';d.id='typing';d.textContent='Przygotowuję analizę zdjęcia…';el('result-area').appendChild(d);}
 }
-function quickSend(t) {el('msg-input').value=t;autoResize(el('msg-input')); if(currentImages[0] && (currentMode!=='porownanie'||currentImages[1]))wyslij();else el('msg-input').focus();}
+function quickSend(t) {el('msg-input').value=t;autoResize(el('msg-input')); if(currentImages[0] && (currentMode!=='porownanie'||currentImages[1]))wyslij();else {renderWiadomosc('Najpierw dodaj '+(currentMode==='porownanie'?'oba zdjęcia.':'zdjęcie śladu.'),'error');el('file-input').focus();}}
 function autoResize(element) {element.style.height='auto';element.style.height=Math.min(element.scrollHeight,80)+'px';}
 function handleKey(event) {if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();wyslij();}}
 async function wyslij() {

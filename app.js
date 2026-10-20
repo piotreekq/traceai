@@ -199,6 +199,25 @@ function goScan(prefill='') {
   showScreen('screen-scan');
   updateCaseBar();
 }
+
+// Quick capture: user taps +, camera opens, captured image is analyzed automatically.
+function quickCameraAnalysis(){
+  const input=el('quick-camera-input');
+  input.value='';
+  input.click();
+}
+async function handleQuickCamera(event){
+  const file=event.target.files?.[0];
+  if(!file)return;
+  goScan('analiza');
+  el('msg-input').value='Wykonaj szybką ogólną analizę fotografii. Najpierw oceń, czy przedstawia ślad traseologiczny. Jeśli nie, wskaż to wyraźnie i nie dopisuj nieistniejących cech śladu.';
+  try{
+    await wgrajZdjecie({target:{files:[file]}},0);
+    if(currentImages[0])await wyslij();
+  }catch(error){renderWiadomosc(error.message||'Nie udało się przeanalizować fotografii.','error');}
+  finally{event.target.value='';}
+}
+
 function goHome() { renderRecentFromHistory();showScreen('screen-home'); }
 function goHistory() {renderFullHistory();showScreen('screen-history');}
 

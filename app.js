@@ -552,8 +552,26 @@ async function reportImage(data,annotations=[]){
 async function exportCasePdf(id) {
   const c=cases.find(x=>x?.id===id)||(activeCase?.id===id?activeCase:null);
   if(!c){alert('Wybierz sprawę, dla której chcesz przygotować raport.');return;}
-  const jspdf=window.jspdf?.jsPDF;
-  if(!jspdf){alert('Generator PDF nie został załadowany. Sprawdź połączenie internetowe i spróbuj ponownie.');return;}
+  let jspdf=window.jspdf?.jsPDF;
+  if(!jspdf){
+    for(const src of [
+      'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js',
+      'https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js'
+    ]){
+      try{
+        await new Promise((resolve,reject)=>{
+          const script=document.createElement('script');
+          const timeout=setTimeout(()=>{script.remove();reject(new Error('timeout'));},10000);
+          script.src=src;script.onload=()=>{clearTimeout(timeout);resolve();};
+          script.onerror=()=>{clearTimeout(timeout);reject(new Error('load failed'));};
+          document.head.appendChild(script);
+        });
+        jspdf=window.jspdf?.jsPDF;
+        if(jspdf)break;
+      }catch(e){console.warn('PDF CDN fallback:',e);}
+    }
+  }
+  if(!jspdf){alert('Nie udało się uruchomić generatora PDF. Spróbuj ponownie przy stabilnym połączeniu.');return;}
   const filename='TraceAI-'+String(c.number||c.title||'raport').replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,55)+'.pdf';
   const pdf=new jspdf({orientation:'portrait',unit:'mm',format:'a4',compress:true});
   const pageW=210,pageH=297,margin=17,width=pageW-2*margin;

@@ -1102,6 +1102,19 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 .header-actions .avatar-btn,.bottom-nav .nav-icon{line-height:0}
 .header-actions .avatar-btn svg,.bottom-nav .nav-icon svg{display:block;stroke-linecap:round;stroke-linejoin:round}
 
+
+/* TraceAI 3.0.6: repair icons even when icon library is unavailable */
+.avatar-btn,.bottom-nav .nav-btn,.bottom-nav .nav-center-btn{visibility:visible!important;opacity:1!important}
+.avatar-btn{position:relative;display:grid!important;place-items:center!important}
+.avatar-btn svg{width:22px!important;height:22px!important}
+.bottom-nav{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;align-items:start!important;min-height:82px!important;padding:10px 6px 13px!important}
+.bottom-nav .nav-btn{width:100%!important;min-height:66px!important;padding:5px 0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important}
+.bottom-nav .nav-icon{height:27px!important;width:27px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+.bottom-nav .nav-icon svg{width:24px!important;height:24px!important}
+.bottom-nav .nav-label{display:block!important;font-size:11px!important;line-height:16px!important;font-weight:500!important}
+.bottom-nav .nav-center-btn{width:51px!important;height:51px!important;min-height:51px!important;border-radius:16px!important;margin:0 auto!important;align-self:start!important;display:grid!important;place-items:center!important}
+.bottom-nav .nav-center-btn svg{width:25px!important;height:25px!important}
+
 </style>
 </head>
 <body>
@@ -1142,7 +1155,7 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
       </div>
       <div class="header-actions">
         <button class="header-theme-btn" id="header-theme-btn" type="button" onclick="toggleThemeQuick()" aria-label="Przełącz motyw" title="Zmień motyw"><span id="header-theme-icon"><i data-lucide="moon"></i></span></button>
-        <button class="avatar-btn" type="button" onclick="pokazModal()" aria-label="Otwórz ustawienia"><i data-lucide="sliders-horizontal"></i></button>
+        <button class="avatar-btn" type="button" onclick="pokazModal()" aria-label="Otwórz ustawienia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5" fill="var(--card)"/><circle cx="16" cy="17" r="2.5" fill="var(--card)"/></svg></button>
       </div>
     </div>
 
@@ -1221,15 +1234,15 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
       <span class="nav-icon"><i data-lucide="camera"></i></span>
       <span class="nav-label">Skanuj</span>
     </button>
-    <button class="nav-center-btn" onclick="createNewCase()">
-      <i data-lucide="plus"></i>
+    <button class="nav-center-btn" onclick="createNewCase()" aria-label="Nowa sprawa">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>
     </button>
     <button class="nav-btn" onclick="goCases()">
       <span class="nav-icon"><i data-lucide="folder"></i></span>
       <span class="nav-label">Sprawy</span>
     </button>
     <button class="nav-btn" onclick="pokazModal()">
-      <span class="nav-icon"><i data-lucide="sliders-horizontal"></i></span>
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5" fill="var(--card)"/><circle cx="16" cy="17" r="2.5" fill="var(--card)"/></svg></span>
       <span class="nav-label">Ustawienia</span>
     </button>
   </div>
@@ -1369,7 +1382,7 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 
 <!-- TraceAI 3.0: image workspace, case files, PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" defer></script>
-<script src="app.js?v=3.0.5" defer></script>
+<script src="app.js?v=3.0.6" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initTurnstile&amp;render=explicit" async defer></script>
 </body>
 </html>

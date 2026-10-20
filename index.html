@@ -1127,6 +1127,14 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 .settings-section-title .settings-symbol{display:grid!important;place-items:center!important;width:39px!important;height:39px!important;flex:none!important;background:var(--bg)!important;border-radius:12px!important;color:var(--text)!important}
 .settings-section-title .settings-symbol svg{display:block!important;width:21px!important;height:21px!important;stroke:currentColor!important}
 
+/* TraceAI 3.0.8 — fixed bottom bar inside mobile viewport */
+#screen-home{position:relative!important;overflow:hidden!important}
+#screen-home .home-content-scroll{overflow-y:auto!important;overflow-x:hidden!important;min-height:0!important;flex:1 1 auto!important;padding-bottom:20px!important}
+#screen-home>.bottom-nav{position:absolute!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;transform:none!important;width:100%!important;max-width:100%!important;min-width:0!important;z-index:50!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;box-sizing:border-box!important;overflow:hidden!important}
+#screen-home>.bottom-nav>*{min-width:0!important;max-width:100%!important}
+#screen-home>.bottom-nav .nav-btn{flex:initial!important}
+#screen-home>.bottom-nav .nav-center-btn{position:static!important;transform:none!important;left:auto!important;right:auto!important}
+
 </style>
 </head>
 <body>
@@ -1237,10 +1245,11 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
     </div>
   </div>
 
+  <input id="quick-camera-input" type="file" accept="image/*" capture="environment" style="display:none" onchange="handleQuickCamera(event)">
   <div class="bottom-nav" role="navigation" aria-label="Nawigacja główna">
     <button class="nav-btn active" type="button" onclick="goHome()"><span class="nav-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></span><span class="nav-label">Start</span></button>
     <button class="nav-btn" type="button" onclick="goScan('')"><span class="nav-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h4l2-3h4l2 3h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/><circle cx="12" cy="13" r="4"/></svg></span><span class="nav-label">Skanuj</span></button>
-    <button class="nav-center-btn" type="button" onclick="createNewCase()" aria-label="Nowa sprawa"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></button>
+    <button class="nav-center-btn" type="button" onclick="quickCameraAnalysis()" aria-label="Zrób zdjęcie i rozpocznij szybką analizę"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></button>
     <button class="nav-btn" type="button" onclick="goCases()"><span class="nav-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v10H3z"/></svg></span><span class="nav-label">Sprawy</span></button>
     <button class="nav-btn" type="button" onclick="pokazModal()"><span class="nav-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5" fill="var(--card)"/><circle cx="16" cy="17" r="2.5" fill="var(--card)"/></svg></span><span class="nav-label">Ustawienia</span></button>
   </div>
@@ -1380,7 +1389,7 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 
 <!-- TraceAI 3.0: image workspace, case files, PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" defer></script>
-<script src="app.js?v=3.0.7" defer></script>
+<script src="app.js?v=3.0.8" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initTurnstile&amp;render=explicit" async defer></script>
 </body>
 </html>

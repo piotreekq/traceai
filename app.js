@@ -548,42 +548,88 @@ async function reportImage(data,annotations=[]){
     return c.toDataURL('image/jpeg',.87);
   }catch(e){console.warn('Nie można przygotować obrazu do raportu',e);return null;}
 }
-async function exportCasePdf(id){
-  const c=cases.find(c=>c?.id===id)|| (activeCase?.id===id?activeCase:null);
+
+async function exportCasePdf(id) {
+  const c=cases.find(x=>x?.id===id)||(activeCase?.id===id?activeCase:null);
   if(!c){alert('Wybierz sprawę, dla której chcesz przygotować raport.');return;}
-  const root=el('print-section');root.replaceChildren();root.style.display='block';
-  const report=reportNode('article');
-  report.appendChild(reportNode('h1','TraceAI — raport roboczy'));
-  report.appendChild(reportNode('p','Dokumentacja pomocnicza sprawy · przygotowana z użyciem narzędzi cyfrowych.'));
-  const metadata=reportNode('div',undefined,'report-metadata');
-  for(const [label,value] of [['Numer sprawy',c.number||'Nie nadano'],['Nazwa sprawy',c.title||'Bez nazwy'],['Rodzaj śladu',c.kind||'Nie określono'],['Status',({szkic:'Szkic',w_toku:'W toku',zakonczona:'Zakończona'}[c.status]||'Szkic')],['Data raportu',new Date().toLocaleString('pl-PL')],['Data utworzenia',new Date(c.createdAt||Date.now()).toLocaleDateString('pl-PL')]]){
-    const wrapper=reportNode('div');wrapper.append(reportNode('small',label),reportNode('strong',value));metadata.appendChild(wrapper);
-  }report.appendChild(metadata);
-  if(c.notes){report.append(reportNode('h2','Notatki do sprawy'),reportNode('p',c.notes));}
-  const images=c.images||[null,null];const anns=c.annotations||[];
-  report.appendChild(reportNode('h2','Materiał fotograficzny'));
-  for(let i=0;i<images.length;i++){
-    const image=images[i];if(!image)continue;
-    const figure=reportNode('figure');const img=document.createElement('img');img.alt='Fotografia '+(i+1);img.src=editorImageSource(image);figure.append(img,reportNode('figcaption','Fotografia '+(i+1)+(i===0?' — ślad':' — materiał porównawczy')));report.appendChild(figure);
-    if(i===0&&anns.length){const annotated=await reportImage(image,anns);if(annotated){const f=reportNode('figure');const preview=document.createElement('img');preview.src=annotated;preview.alt='Zaznaczone cechy śladu';f.append(preview,reportNode('figcaption','Wizualizacja oznaczeń (materiał roboczy; oryginał powyżej)'));report.appendChild(f);}}
+  const jspdf=window.jspdf?.jsPDF;
+  if(!jspdf){alert('Generator PDF nie został załadowany. Sprawdź połączenie internetowe i spróbuj ponownie.');return;}
+  const filename='TraceAI-'+String(c.number||c.title||'raport').replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,55)+'.pdf';
+  const pdf=new jspdf({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+  const pageW=210,pageH=297,margin=17,width=pageW-2*margin;
+  let y=21;
+  const nextPage=(needed=12)=>{if(y+needed>pageH-18){pdf.addPage();y=22;}};
+  const lines=(value,maxWidth=width)=>pdf.splitTextToSize(String(value??''),maxWidth);
+  const addText=(value,{size=10,weight='normal',gap=5,leading=5,color=[35,41,52]}={})=>{
+    pdf.setFont('helvetica',weight);pdf.setFontSize(size);pdf.setTextColor(...color);
+    const chunks=lines(String(value).normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E\n]/g,ch=>({'ł':'l','Ł':'L','—':'-','–':'-','•':'-','„':'"','”':'"','’':"'",'°':' deg'}[ch]||'?')));
+    for(const line of chunks){nextPage(leading);pdf.text(line,margin,y);y+=leading;}
+    y+=gap;
+  };
+  const heading=(title)=>{nextPage(18);y+=3;pdf.setDrawColor(220);pdf.line(margin,y,pageW-margin,y);y+=9;addText(title,{size:12,weight:'bold',gap:2,leading:6})};
+  const fitImage=(data,caption)=>{
+    if(!data)return;
+    try{
+      const properties=pdf.getImageProperties(data);
+      const w=width, maxH=116;
+      const scale=Math.min(w/properties.width,maxH/properties.height);
+      const drawW=properties.width*scale,drawH=properties.height*scale;
+      nextPage(drawH+18);
+      pdf.addImage(data,'JPEG',margin+(width-drawW)/2,y,drawW,drawH,undefined,'FAST');
+      y+=drawH+5;
+      addText(caption,{size:8,gap:6,leading:4,color:[100,105,115]});
+    }catch(error){addText('Nie mozna dolaczyc fotografii: '+caption,{size:9})}
+  };
+  addText('TraceAI - raport roboczy',{size:19,weight:'bold',gap:6,leading:9});
+  addText('Dokument pomocniczy. Nie stanowi opinii bieglego.',{size:9,gap:7,leading:5,color:[102,107,116]});
+  for(const [label,value] of [['Numer sprawy',c.number||'Nie nadano'],['Nazwa sprawy',c.title||'Bez nazwy'],['Rodzaj sladu',c.kind||'Nie okreslono'],['Status',c.status||'szkic'],['Data raportu',new Date().toLocaleString('pl-PL')]]){
+    addText(label+': '+value,{size:10,gap:0,leading:5});
   }
-  if(!images.some(Boolean))report.appendChild(reportNode('p','Do sprawy nie dołączono fotografii.'));
-  report.appendChild(reportNode('h2','Oznaczenia i pomiary'));
-  if(anns.length){const list=reportNode('ol');for(const a of anns){list.appendChild(reportNode('li',a.label||a.type||'Oznaczenie'));}report.appendChild(list);}else report.appendChild(reportNode('p','Brak zapisanych oznaczeń.'));
-  if(c.calibration){const {mm,pixels}=c.calibration;report.appendChild(reportNode('p','Kalibracja: '+mm+' mm odpowiada '+Math.round(pixels)+' px. Pomiary mogą być obarczone błędami perspektywy i odwzorowania.'));}
+  if(c.notes){heading('Notatki');addText(c.notes)}
+  heading('Material fotograficzny');
+  let count=0;
+  for(let i=0;i<(c.images||[]).length;i++){
+    const img=c.images[i];if(!img)continue;count++;
+    const raw=editorImageSource(img);
+    if(raw)fitImage(raw,'Fotografia '+(i+1)+(i===0?' - slad':' - material porownawczy'));
+    if(i===0&&(c.annotations||[]).length){
+      const marked=await reportImage(img,c.annotations);
+      if(marked)fitImage(marked,'Fotografia z oznaczeniami');
+    }
+  }
+  if(!count)addText('Nie dolaczono fotografii.');
+  heading('Oznaczenia i pomiary');
+  const anns=c.annotations||[];
+  if(!anns.length)addText('Brak zapisanych oznaczen.');
+  else for(const [i,a] of anns.entries())addText((i+1)+'. '+(a.label||a.type||'Oznaczenie'),{gap:1});
+  if(c.calibration)addText('Kalibracja: '+c.calibration.mm+' mm = '+Math.round(c.calibration.pixels)+' px. Pomiary orientacyjne, zalezne od perspektywy.');
+  heading('Wyniki analiz AI');
   const related=records.filter(r=>r.caseId===c.id).sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
-  report.appendChild(reportNode('h2','Wyniki analiz AI'));
-  if(!related.length)report.appendChild(reportNode('p','Dla tej sprawy nie wykonano jeszcze analizy AI.'));
+  if(!related.length)addText('Brak wykonanych analiz AI.');
   for(const [i,r] of related.entries()){
-    const section=reportNode('section');section.appendChild(reportNode('h3',(i+1)+'. '+(MODE_LABELS[r.mode]||'Analiza')));
-    section.appendChild(reportNode('p','Pytanie: '+(r.text||'Analiza śladu')));
-    const answer=reportNode('div',undefined,'report-answer');const pieces=String(r.reply||'Brak odpowiedzi modelu').split(/(\*\*[^*\n]+\*\*)/g);for(const segment of pieces){if(segment.startsWith('**')&&segment.endsWith('**'))answer.appendChild(reportNode('strong',segment.slice(2,-2)));else answer.appendChild(document.createTextNode(segment));}section.appendChild(answer);report.appendChild(section);
+    addText((i+1)+'. '+(MODE_LABELS[r.mode]||'Analiza sladu'),{weight:'bold',gap:2});
+    if(r.text)addText('Pytanie: '+r.text,{size:9,gap:3});
+    addText(String(r.reply||'Brak odpowiedzi').replace(/[*#]+/g,'').slice(0,19000),{size:9,gap:6,leading:4.6});
   }
-  report.appendChild(reportNode('p','Uwaga: obraz po przetworzeniu, oznaczenia i wyniki AI mają charakter pomocniczy. Dokument nie stanowi opinii biegłego ani identyfikacji indywidualnej.','report-disclaimer'));
-  root.appendChild(report);
-  const cleanup=()=>{root.style.display='none';window.removeEventListener('afterprint',cleanup);};
-  window.addEventListener('afterprint',cleanup,{once:true});
-  requestAnimationFrame(()=>window.print());
+  heading('Ograniczenia');
+  addText('Wyniki AI, oznaczenia i pomiary maja charakter pomocniczy. Wnioski nalezy niezaleznie zweryfikowac.',{size:9});
+  const total=pdf.internal.getNumberOfPages();
+  for(let p=1;p<=total;p++){pdf.setPage(p);pdf.setFontSize(8);pdf.setTextColor(130);pdf.text('TraceAI | '+(c.number||'sprawa')+' | '+p+' / '+total,margin,pageH-9);}
+  const url=URL.createObjectURL(pdf.output('blob'));
+  const overlay=document.createElement('div');overlay.className='pdf-preview-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-label','Podglad raportu PDF');
+  const card=document.createElement('div');card.className='pdf-preview-card';
+  const header=document.createElement('div');header.className='pdf-preview-header';
+  const title=document.createElement('strong');title.textContent='Podgląd raportu PDF';
+  const actions=document.createElement('div');actions.className='pdf-preview-actions';
+  const open=document.createElement('a');open.href=url;open.target='_blank';open.rel='noopener';open.textContent='Otwórz PDF';
+  const download=document.createElement('a');download.href=url;download.download=filename;download.textContent='Zapisz PDF';
+  const close=document.createElement('button');close.type='button';close.textContent='Zamknij';
+  const cleanup=()=>{overlay.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)};
+  close.onclick=cleanup;overlay.addEventListener('click',e=>{if(e.target===overlay)cleanup()});
+  actions.append(open,download,close);header.append(title,actions);
+  const frame=document.createElement('iframe');frame.className='pdf-preview-frame';frame.title='Podglad PDF';frame.src=url;
+  const hint=document.createElement('p');hint.className='pdf-preview-help';hint.textContent='Na iPhonie użyj „Otwórz PDF”, a następnie Udostępnij → Zapisz w Plikach. Dokument nie otwiera już okna drukowania.';
+  card.append(header,frame,hint);overlay.appendChild(card);document.body.appendChild(overlay);
 }
 
 init();

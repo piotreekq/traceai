@@ -112,7 +112,14 @@ function toggleThemeQuick() {
   const currentDark = document.documentElement.dataset.theme === 'dark';
   chooseTheme(currentDark ? 'light' : 'dark');
 }
-function pokazModal() { el('modal').style.display='flex'; iconRefresh(); }
+let aiLengthPreference=(()=>{try{return localStorage.getItem('traceai_ai_length')||'normal'}catch{return 'normal'}})();
+function setAILength(value){
+  if(!['short','normal','long'].includes(value))return;
+  aiLengthPreference=value;
+  try{localStorage.setItem('traceai_ai_length',value)}catch(_e){}
+  document.querySelectorAll('[data-ai-length]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.aiLength===value)));
+}
+function pokazModal() { el('modal').style.display='flex'; setAILength(aiLengthPreference); iconRefresh(); }
 function ukryjModal() { el('modal').style.display='none'; }
 function configured() {
   return /^https:\/\//.test(CONFIG.API_ENDPOINT) && !CONFIG.API_ENDPOINT.includes('YOUR_SUBDOMAIN') &&
@@ -409,7 +416,7 @@ async function wyslij() {
   const imagePayload=currentImages.slice(0,currentMode==='porownanie'?2:1);
   try {
     const verifiedToken=await verifyInBackground();
-    const response=await fetch(CONFIG.API_ENDPOINT, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:currentMode,text,images:imagePayload,conversation:prior,turnstileToken:verifiedToken})});
+    const response=await fetch(CONFIG.API_ENDPOINT, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:currentMode,text:(aiLengthPreference==='short'?'Odpowiedz zwięźle, maksymalnie 5 krótkich punktów. ':aiLengthPreference==='long'?'Odpowiedz szczegółowo: obserwacje, cechy, ograniczenia i wnioski. ':'')+text,images:imagePayload,conversation:prior,turnstileToken:verifiedToken})});
     const result=await response.json().catch(()=>({error:'Nieprawidłowa odpowiedź serwera.'}));
     if(!response.ok || !result.reply)throw Error(result.error||'Nie udało się wykonać analizy.');
     typing(false);
@@ -462,10 +469,10 @@ function editorToCanvas(pos,index=0){const p=imgPlacement(index);if(!p)return{x:
 function editorFromCanvas(x,y){const p=imgPlacement(0);if(!p)return{x:0,y:0};const a=p.angle*Math.PI/180,dx=x-p.cx-editorState.panX*devicePixelRatio,dy=y-p.cy-editorState.panY*devicePixelRatio;return{x:(dx*Math.cos(a)+dy*Math.sin(a))/p.scale+p.image.naturalWidth/2,y:(-dx*Math.sin(a)+dy*Math.cos(a))/p.scale+p.image.naturalHeight/2};}
 function editorDrawMark(ctx,item){
   if(!item)return;const first=editorToCanvas(item.a);const second=item.b?editorToCanvas(item.b):first;
-  const unit=devicePixelRatio;ctx.save();ctx.lineWidth=2*unit;ctx.strokeStyle='#e64b36';ctx.fillStyle='#e64b36';ctx.font=12*unit+'px sans-serif';ctx.lineCap='round';
+  const unit=devicePixelRatio;ctx.save();ctx.lineWidth=3*unit;ctx.strokeStyle='#ffdf31';ctx.fillStyle='#ffdf31';ctx.shadowColor='#000';ctx.shadowBlur=2*unit;ctx.font=12*unit+'px sans-serif';ctx.lineCap='round';
   if(item.type==='point'){ctx.beginPath();ctx.arc(first.x,first.y,4.5*unit,0,Math.PI*2);ctx.fill();}
-  else if(item.type==='rect'){ctx.strokeRect(first.x,first.y,second.x-first.x,second.y-first.y);}
-  else {ctx.beginPath();ctx.moveTo(first.x,first.y);ctx.lineTo(second.x,second.y);ctx.stroke();ctx.beginPath();ctx.arc(first.x,first.y,3*unit,0,Math.PI*2);ctx.arc(second.x,second.y,3*unit,0,Math.PI*2);ctx.fill();}
+  else if(item.type==='rect'){ctx.strokeStyle='#111';ctx.lineWidth=6*unit;ctx.strokeRect(first.x,first.y,second.x-first.x,second.y-first.y);ctx.strokeStyle='#ffdf31';ctx.lineWidth=3*unit;ctx.strokeRect(first.x,first.y,second.x-first.x,second.y-first.y);}
+  else {ctx.beginPath();ctx.moveTo(first.x,first.y);ctx.lineTo(second.x,second.y);ctx.strokeStyle='#111';ctx.lineWidth=7*unit;ctx.stroke();ctx.strokeStyle='#ffdf31';ctx.lineWidth=3*unit;ctx.stroke();ctx.beginPath();ctx.arc(first.x,first.y,3*unit,0,Math.PI*2);ctx.arc(second.x,second.y,3*unit,0,Math.PI*2);ctx.fill();}
   if(item.label){ctx.lineWidth=3*unit;ctx.strokeStyle='rgba(0,0,0,.72)';ctx.strokeText(item.label,first.x+8*unit,first.y-8*unit);ctx.fillStyle='#fff';ctx.fillText(item.label,first.x+8*unit,first.y-8*unit)}
   ctx.restore();
 }

@@ -1135,6 +1135,16 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 #screen-home>.bottom-nav .nav-btn{flex:initial!important}
 #screen-home>.bottom-nav .nav-center-btn{position:static!important;transform:none!important;left:auto!important;right:auto!important}
 
+
+/* 3.0.9: cohesive navigation, compact image tools and AI settings */
+#screen-home>.bottom-nav{background:var(--bg)!important;border-top:1px solid var(--border)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.ai-length-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.ai-length-options button{min-width:0;border:1px solid var(--border);border-radius:12px;background:var(--soft-card);color:var(--text);padding:12px 4px;font:600 12px var(--sans);cursor:pointer}
+.ai-length-options button[aria-pressed="true"]{background:var(--text);color:var(--card);border-color:var(--text)}
+.editor-tools{display:flex;flex-wrap:wrap;gap:8px}
+.editor-tools .editor-tool{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;border-radius:12px!important}
+.editor-tools .editor-tool svg{width:18px;height:18px;flex:none}
+.editor-stage{overflow:hidden!important}
 </style>
 </head>
 <body>
@@ -1151,6 +1161,14 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
         <button type="button" data-theme-choice="light" onclick="chooseTheme('light')" aria-label="Jasny motyw" aria-pressed="false"><i data-lucide="sun"></i><span>Jasny</span></button>
         <button type="button" data-theme-choice="dark" onclick="chooseTheme('dark')" aria-label="Ciemny motyw" aria-pressed="false"><i data-lucide="moon"></i><span>Ciemny</span></button>
         <button type="button" data-theme-choice="system" onclick="chooseTheme('system')" aria-label="Motyw systemowy" aria-pressed="false"><i data-lucide="monitor"></i><span>System</span></button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title"><span class="settings-symbol"><i data-lucide="bot"></i></span><div><strong>Odpowiedzi AI</strong><span>Wybierz szczegółowość analizy</span></div></div>
+      <div class="ai-length-options" role="group" aria-label="Długość odpowiedzi AI">
+        <button type="button" data-ai-length="short" onclick="setAILength('short')">Krótka</button>
+        <button type="button" data-ai-length="normal" onclick="setAILength('normal')">Standard</button>
+        <button type="button" data-ai-length="long" onclick="setAILength('long')">Szczegółowa</button>
       </div>
     </div>
     <div class="settings-section">
@@ -1327,9 +1345,9 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
       <div class="editor-tools">
         <button type="button" class="editor-tool" onclick="zoomEditor(-.2)" aria-label="Pomniejsz">−</button>
         <button type="button" class="editor-tool" onclick="zoomEditor(.2)" aria-label="Powiększ">+</button>
-        <button type="button" class="editor-tool" onclick="rotateEditor(-90)">↶ Obrót</button>
-        <button type="button" class="editor-tool" onclick="rotateEditor(90)">↷ Obrót</button>
-        <button type="button" class="editor-tool" onclick="resetEditorView()">Reset widoku</button>
+        <button type="button" class="editor-tool" onclick="rotateEditor(-90)"><i data-lucide="rotate-ccw"></i><span>W lewo</span></button>
+        <button type="button" class="editor-tool" onclick="rotateEditor(90)"><i data-lucide="rotate-cw"></i><span>W prawo</span></button>
+        <button type="button" class="editor-tool" onclick="resetEditorView()"><i data-lucide="maximize"></i><span>Reset</span></button>
       </div>
       <div id="editor-compare-options" hidden>
         <div class="editor-row"><span>Widok porównania</span><button type="button" class="editor-tool" onclick="switchEditorLayout()" id="editor-layout-btn">Nakładka</button></div>
@@ -1389,7 +1407,7 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 
 <!-- TraceAI 3.0: image workspace, case files, PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" defer></script>
-<script src="app.js?v=3.0.8" defer></script>
+<script src="app.js?v=3.0.9" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initTurnstile&amp;render=explicit" async defer></script>
 </body>
 </html>

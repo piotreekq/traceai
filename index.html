@@ -1145,6 +1145,20 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 .editor-tools .editor-tool{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;border-radius:12px!important}
 .editor-tools .editor-tool svg{width:18px;height:18px;flex:none}
 .editor-stage{overflow:hidden!important}
+
+/* v3.0.10 */
+.editor-tools .editor-tool{display:inline-flex;justify-content:center;align-items:center;text-align:center;gap:7px;min-height:45px;padding:9px 12px;line-height:1.15}
+.editor-tools .editor-tool svg{width:19px;height:19px;display:block;flex:none}
+.editor-tools .rotate-tool{width:50px;min-width:50px;padding:10px}
+.editor-tools .rotate-tool svg{width:24px;height:24px}
+.editor-tools .editor-tool[aria-label="Pomniejsz"],.editor-tools .editor-tool[aria-label="Powiększ"]{font-size:24px;font-weight:700;width:50px;min-width:50px}
+.editor-annotations li button{font-size:23px!important;min-width:40px;min-height:40px;display:inline-grid;place-items:center;border-radius:10px;cursor:pointer}
+.ai-settings-heading .settings-symbol{background:#e7edf9;color:#315f9d}
+[data-theme="dark"] .ai-settings-heading .settings-symbol{background:#25374f;color:#a5c8ff}
+.ai-length-description{font-size:12px;color:var(--text2);margin:0 0 12px 0;line-height:1.5}
+.ai-length-options{gap:8px}
+.ai-length-options button{min-height:48px;border-radius:14px}
+.ai-length-options button[aria-pressed="true"]{background:#294e78;color:white;border-color:#294e78}
 </style>
 </head>
 <body>
@@ -1164,8 +1178,8 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
       </div>
     </div>
     <div class="settings-section">
-      <div class="settings-section-title"><span class="settings-symbol"><i data-lucide="bot"></i></span><div><strong>Odpowiedzi AI</strong><span>Wybierz szczegółowość analizy</span></div></div>
-      <div class="ai-length-options" role="group" aria-label="Długość odpowiedzi AI">
+      <div class="settings-section-title ai-settings-heading"><span class="settings-symbol"><i data-lucide="sparkles"></i></span><div><strong>Odpowiedzi AI</strong><span>Wybierz szczegółowość analizy</span></div></div>
+      <p class="ai-length-description">Dostosuj ilość informacji w analizach do swoich potrzeb.</p><div class="ai-length-options" role="group" aria-label="Długość odpowiedzi AI">
         <button type="button" data-ai-length="short" onclick="setAILength('short')">Krótka</button>
         <button type="button" data-ai-length="normal" onclick="setAILength('normal')">Standard</button>
         <button type="button" data-ai-length="long" onclick="setAILength('long')">Szczegółowa</button>
@@ -1345,8 +1359,8 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
       <div class="editor-tools">
         <button type="button" class="editor-tool" onclick="zoomEditor(-.2)" aria-label="Pomniejsz">−</button>
         <button type="button" class="editor-tool" onclick="zoomEditor(.2)" aria-label="Powiększ">+</button>
-        <button type="button" class="editor-tool" onclick="rotateEditor(-90)"><i data-lucide="rotate-ccw"></i><span>W lewo</span></button>
-        <button type="button" class="editor-tool" onclick="rotateEditor(90)"><i data-lucide="rotate-cw"></i><span>W prawo</span></button>
+        <button type="button" class="editor-tool rotate-tool" onclick="rotateEditor(-90)" aria-label="Obróć w lewo" title="Obróć w lewo"><i data-lucide="rotate-ccw"></i></button>
+        <button type="button" class="editor-tool rotate-tool" onclick="rotateEditor(90)" aria-label="Obróć w prawo" title="Obróć w prawo"><i data-lucide="rotate-cw"></i></button>
         <button type="button" class="editor-tool" onclick="resetEditorView()"><i data-lucide="maximize"></i><span>Reset</span></button>
       </div>
       <div id="editor-compare-options" hidden>
@@ -1358,12 +1372,12 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
     <div class="editor-panel">
       <div class="editor-label">Zaznaczanie cech i pomiary</div>
       <div class="editor-tools" role="group" aria-label="Wybierz narzędzie edycji">
-        <button type="button" class="editor-tool" data-editor-tool="pan" aria-pressed="true" onclick="setEditorTool('pan')">Przesuń</button>
-        <button type="button" class="editor-tool" data-editor-tool="point" aria-pressed="false" onclick="setEditorTool('point')">Punkt</button>
-        <button type="button" class="editor-tool" data-editor-tool="line" aria-pressed="false" onclick="setEditorTool('line')">Linia</button>
-        <button type="button" class="editor-tool" data-editor-tool="rect" aria-pressed="false" onclick="setEditorTool('rect')">Obszar</button>
-        <button type="button" class="editor-tool" data-editor-tool="measure" aria-pressed="false" onclick="setEditorTool('measure')">Linijka</button>
-        <button type="button" class="editor-tool" data-editor-tool="calibrate" aria-pressed="false" onclick="setEditorTool('calibrate')">Kalibruj</button>
+        <button type="button" class="editor-tool" data-editor-tool="pan" aria-pressed="true" onclick="setEditorTool('pan')"><i data-lucide="hand"></i><span>Przesuń</span></button>
+        <button type="button" class="editor-tool" data-editor-tool="point" aria-pressed="false" onclick="setEditorTool('point')"><i data-lucide="crosshair"></i><span>Punkt</span></button>
+        <button type="button" class="editor-tool" data-editor-tool="line" aria-pressed="false" onclick="setEditorTool('line')"><i data-lucide="slash"></i><span>Linia</span></button>
+        <button type="button" class="editor-tool" data-editor-tool="rect" aria-pressed="false" onclick="setEditorTool('rect')"><i data-lucide="square-dashed"></i><span>Obszar</span></button>
+        <button type="button" class="editor-tool" data-editor-tool="measure" aria-pressed="false" onclick="setEditorTool('measure')"><i data-lucide="ruler"></i><span>Linijka</span></button>
+        <button type="button" class="editor-tool" data-editor-tool="calibrate" aria-pressed="false" onclick="setEditorTool('calibrate')"><i data-lucide="scan-line"></i><span>Kalibruj</span></button>
       </div>
       <div class="editor-stat" id="editor-calibration">Brak kalibracji — pomiary będą niedostępne.</div>
       <div class="editor-row"><button class="editor-action secondary" type="button" onclick="undoEditorAnnotation()">Cofnij oznaczenie</button><button class="editor-action secondary" type="button" onclick="clearEditorCalibration()">Usuń kalibrację</button></div>
@@ -1407,7 +1421,7 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 
 <!-- TraceAI 3.0: image workspace, case files, PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" defer></script>
-<script src="app.js?v=3.0.9" defer></script>
+<script src="app.js?v=3.0.10" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initTurnstile&amp;render=explicit" async defer></script>
 </body>
 </html>

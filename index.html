@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon.png">
 <title>TraceAI — Asystent Traseologiczny</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@0.468.0"></script>
+
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -761,8 +761,6 @@ body {
 .settings-action {display:flex;align-items:center;justify-content:center;gap:8px}
 .settings-action svg {width:17px;height:17px}
 .settings-info {margin:12px 0;color:var(--text2);font-size:12px;line-height:1.5;padding:10px 12px;border-radius:12px;background:var(--bg)}
-.turnstile-wrap {display:flex;align-items:center;gap:10px;padding:8px 24px 2px;flex-shrink:0;flex-wrap:wrap}
-#turnstile-status {font-size:11px;color:var(--text2)}
 .disclaimer {font-size:10px;color:var(--text2);line-height:1.35;padding:3px 24px 0;flex-shrink:0}
 #screen-scan .result-scroll {padding-bottom:10px}
 #screen-scan .input-bar {padding-top:8px}
@@ -786,6 +784,119 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible, inp
   #print-section h1{font-family:Georgia,serif;font-size:22px;margin-bottom:10px}
 }
 
+
+/* TraceAI 2.1: consistent visual tokens & compact controls */
+:root { --ink-icon:#1D2632;--accent-border:#E4E5E8;--soft-card:#F8F9FB;--btn-ink:#fff;--bg-glass:rgba(250,249,246,.95);--focus:#5C89B7; }
+:root[data-theme="dark"] {
+  --bg:#131820;--card:#1D2430;--text:#F4F6FB;--text2:#BEC7D4;--text3:#96A4B8;--border:#343E4D;
+  --accent:#F4F6FB;--ink-icon:#E4EAF4;--soft-card:#252E3C;--muted-bg:#252E3C;
+  --bg-glass:rgba(19,24,32,.96);--focus:#9BBAEF;--btn-ink:#16202B;
+}
+body {letter-spacing:-.009em}
+button {transition:background .18s ease,color .18s ease,border-color .18s ease,transform .15s ease}
+button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible {outline:3px solid var(--focus);outline-offset:3px}
+.topbar {padding:18px 20px 10px;min-height:72px}
+.topbar-title {font-size:31px;letter-spacing:-.035em;line-height:1.05}
+.topbar-sub {font-size:12px;margin-top:5px}
+.header-actions {display:flex;align-items:center;gap:9px}
+.header-theme-btn, .avatar-btn {width:39px;height:39px;border-radius:13px;display:grid;place-items:center;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer}
+.header-theme-btn svg,.avatar-btn svg {width:18px;height:18px;stroke:currentColor;stroke-width:1.9}
+.avatar-btn {background:var(--yellow);border-color:transparent;color:#594400}
+:root[data-theme="dark"] .avatar-btn {background:#423B26;color:#F5CF64;border:1px solid #5E5030}
+.score-section {padding:6px 20px 16px}
+.score-card {padding:20px;border-radius:26px;gap:15px}
+.score-info h3 {font-size:16px;letter-spacing:-.015em}
+.score-info p {font-size:12px;line-height:1.5}
+.score-tags {gap:5px;margin-top:9px}
+.tag {font-size:10px;padding:5px 9px}
+.section-header {padding:0 20px 12px}
+.section-header h2 {font-size:17px}
+.actions-row {padding:0 20px;gap:9px}
+.action-btn {padding:15px 5px 14px;border-radius:20px;gap:10px;min-width:0;justify-content:flex-start}
+.action-btn:hover,.recent-item:hover {border-color:var(--text3)}
+.action-btn span {font-size:12px;font-weight:600;line-height:1.25}
+.action-icon {width:43px;height:43px;border-radius:14px;background:var(--icon-bg)!important;color:var(--icon-color)!important}
+.action-icon svg {stroke:currentColor!important;stroke-width:2;width:21px;height:21px}
+.tone-yellow {--icon-bg:#FFF1CB;--icon-color:#805A0B}
+.tone-blue {--icon-bg:#E1ECFF;--icon-color:#345B94}
+.tone-green {--icon-bg:#DCF8E7;--icon-color:#287050}
+.tone-pink {--icon-bg:#FBE7F0;--icon-color:#945171}
+:root[data-theme="dark"] .tone-yellow {--icon-bg:#3B3427;--icon-color:#F4D37A}
+:root[data-theme="dark"] .tone-blue {--icon-bg:#26364D;--icon-color:#9DC9FF}
+:root[data-theme="dark"] .tone-green {--icon-bg:#263E35;--icon-color:#96E4B6}
+:root[data-theme="dark"] .tone-pink {--icon-bg:#433042;--icon-color:#F7AED2}
+.assistant-banner {margin:15px 20px 0;border-radius:22px;padding:17px 20px}
+.assistant-banner::after {opacity:.12}
+:root[data-theme="dark"] .assistant-banner {background:#3D2837;border:1px solid #624058}
+:root[data-theme="dark"] .banner-label {color:#F4B4D0}
+:root[data-theme="dark"] .banner-text {color:#FBE4F0}
+:root[data-theme="dark"] .banner-btn {color:#492035;background:#F4BCD3}
+.recent-scroll {padding:14px 20px 20px}
+.recent-item {border-radius:19px}
+.bottom-nav {max-width:430px;background:var(--bg-glass);border-top:1px solid var(--border);padding:10px 0 max(11px,env(safe-area-inset-bottom))}
+.nav-btn {gap:4px;padding:4px 10px;color:var(--text2)}
+.nav-btn .nav-icon svg {width:22px;height:22px;stroke:currentColor!important;stroke-width:1.9}
+.nav-btn .nav-icon {color:inherit}
+.nav-btn .nav-label {font-size:10.5px}
+.nav-btn.active {color:var(--text)}
+.nav-center-btn {width:47px;height:47px;margin-top:-15px;background:var(--text);color:var(--btn-ink);box-shadow:0 5px 15px rgba(0,0,0,.12)}
+.nav-center-btn svg,.send-btn svg {stroke:currentColor!important}
+:root[data-theme="dark"] .nav-center-btn,:root[data-theme="dark"] .send-btn {background:#F1D47D;color:#282113}
+#screen-scan .topbar .back-btn {border-radius:100px;color:var(--text);background:var(--card)}
+.upload-zone {margin:8px 20px 12px;border-color:var(--border);border-radius:25px;padding:21px 20px;min-height:143px}
+.upload-zone:active,.upload-zone:hover {border-color:var(--text3)}
+.upload-placeholder .upload-emoji {color:var(--text2);margin-bottom:6px}
+.upload-placeholder .upload-emoji svg {stroke:currentColor!important;stroke-width:1.8;width:32px!important;height:32px!important}
+.upload-placeholder p {font-size:13px;font-weight:600;color:var(--text)}
+.upload-placeholder span {font-size:11px}
+.compare-zone {padding:14px 20px;min-height:115px}
+.quick-prompts {padding:0 20px 10px;gap:7px}
+.qpill {padding:9px 12px;border-radius:100px;font-size:11px}
+.qpill svg {stroke:currentColor!important}
+#screen-scan .result-scroll {padding:4px 20px 8px;min-height:50px}
+.turnstile-runtime {position:absolute;left:0;top:0;width:1px;height:1px;overflow:hidden;pointer-events:none}
+.disclaimer {display:flex;align-items:center;gap:7px;padding:2px 20px 8px;color:var(--text2);font-size:10px;line-height:1.3}
+.disclaimer svg {width:13px;height:13px;flex:none;stroke:currentColor}
+.input-bar {padding:9px 20px max(13px,env(safe-area-inset-bottom))}
+.input-wrap {border-radius:22px;padding:7px 10px;min-height:47px}
+.cam-btn {background:var(--yellow);color:#34290A;width:35px;height:35px}
+.cam-btn svg {width:19px;height:19px;stroke:currentColor}
+.send-btn {height:44px;width:44px;background:var(--text);color:var(--btn-ink)}
+#msg-input {font-size:13px;padding:1px 5px}
+.result-card {border-radius:20px}
+:root[data-theme="dark"] .back-btn,:root[data-theme="dark"] .qpill {color:var(--text)}
+/* Settings bottom sheet */
+.modal-overlay {background:rgba(12,19,30,.50)}
+.modal-sheet {border-radius:28px 28px 0 0;padding:14px 20px max(28px,env(safe-area-inset-bottom));background:var(--card);max-height:88dvh}
+.sheet-handle {margin:0 auto 21px;width:34px;background:var(--border)}
+.settings-heading {display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.eyebrow {display:block;font-size:10px;letter-spacing:.11em;color:var(--text3);font-weight:700;margin-bottom:4px}
+.settings-heading h2 {font-size:24px;letter-spacing:-.035em;margin:0;color:var(--text)}
+.icon-close {width:35px;height:35px;border-radius:12px;border:1px solid var(--border);background:var(--soft-card);color:var(--text2);display:grid;place-items:center;cursor:pointer}
+.icon-close svg {width:18px;height:18px;stroke:currentColor}
+.settings-section {border:1px solid var(--border);border-radius:21px;padding:16px;margin-bottom:12px;background:var(--card)}
+.settings-section-title {display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.settings-symbol {display:grid;place-items:center;width:37px;height:37px;border-radius:12px;background:var(--soft-card);color:var(--text);flex:none}
+.settings-symbol svg {width:18px;height:18px;stroke:currentColor}
+.settings-section-title strong {display:block;font-size:14px;font-weight:700;color:var(--text)}
+.settings-section-title span:not(.settings-symbol) {font-size:11px;line-height:1.4;color:var(--text2)}
+.theme-options {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.theme-options button {display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 7px;border-radius:13px;border:1px solid var(--border);color:var(--text2);background:var(--soft-card);cursor:pointer;font-weight:600;font-size:11px}
+.theme-options button svg {width:17px;height:17px;stroke:currentColor;stroke-width:2}
+.theme-options button.is-active {background:var(--text);color:var(--card);border-color:var(--text)}
+:root[data-theme="dark"] .theme-options button.is-active {background:#F1D47D;color:#2B2414;border-color:#F1D47D}
+.settings-row {width:100%;display:flex;gap:11px;align-items:center;padding:12px 8px;border:0;border-top:1px solid var(--border);background:transparent;color:var(--text);text-align:left;cursor:pointer;font-size:13px}
+.settings-row > svg:first-child {width:17px;height:17px;stroke:currentColor;color:var(--text2)}
+.settings-row > span {flex:1}
+.settings-row > svg:last-child {width:15px;height:15px;stroke:currentColor;color:var(--text3)}
+.settings-row.danger,.settings-row.danger > svg:first-child {color:#C15C59}
+:root[data-theme="dark"] .settings-row.danger,:root[data-theme="dark"] .settings-row.danger > svg:first-child {color:#F19D94}
+.settings-footnote {display:flex;gap:8px;align-items:center;justify-content:center;color:var(--text2);font-size:11px;padding:9px 2px}
+.settings-footnote svg {height:16px;width:16px;stroke:currentColor;color:#528F73}
+.settings-privacy {font-size:11px!important;margin:7px 0 0!important;color:var(--text3)!important;text-align:center;line-height:1.5!important}
+.settings-privacy a {color:var(--text2)!important;text-decoration:underline;text-underline-offset:2px}
+@media(max-width:360px){.action-btn span{font-size:10px}.header-actions{gap:5px}.theme-options button{gap:3px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
@@ -793,13 +904,24 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible, inp
 <div class="modal-overlay" id="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="settings-title" onclick="if(event.target === this) ukryjModal()">
   <div class="modal-sheet">
     <div class="sheet-handle"></div>
-    <h2 id="settings-title">Ustawienia TraceAI</h2>
-    <p>Klucz Gemini przechowuje wyłącznie administrator na serwerze. Nie wpisuj tutaj żadnych haseł ani kluczy API.</p>
-    <button class="sheet-submit settings-action" id="theme-btn" onclick="cycleTheme()"><i data-lucide="moon"></i> Zmień motyw: systemowy</button>
-    <div class="settings-info" id="connection-status">Status usługi: sprawdzanie konfiguracji…</div>
-    <button class="sheet-clear-btn" onclick="exportHistory()">Eksportuj historię (JSON)</button>
-    <button class="sheet-clear-btn" onclick="wyczyscHistorie()">Usuń lokalną historię</button>
-    <button class="sheet-clear-btn" onclick="ukryjModal()">Zamknij</button>
+    <div class="settings-heading"><div><span class="eyebrow">PERSONALIZACJA</span><h2 id="settings-title">Ustawienia</h2></div>
+      <button class="icon-close" type="button" onclick="ukryjModal()" aria-label="Zamknij ustawienia"><i data-lucide="x"></i></button>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title"><span class="settings-symbol"><i data-lucide="palette"></i></span><div><strong>Wygląd aplikacji</strong><span>Wybierz preferowany motyw</span></div></div>
+      <div class="theme-options" role="group" aria-label="Wybierz motyw">
+        <button type="button" data-theme-choice="light" onclick="chooseTheme('light')" aria-label="Jasny motyw" aria-pressed="false"><i data-lucide="sun"></i><span>Jasny</span></button>
+        <button type="button" data-theme-choice="dark" onclick="chooseTheme('dark')" aria-label="Ciemny motyw" aria-pressed="false"><i data-lucide="moon"></i><span>Ciemny</span></button>
+        <button type="button" data-theme-choice="system" onclick="chooseTheme('system')" aria-label="Motyw systemowy" aria-pressed="false"><i data-lucide="monitor"></i><span>System</span></button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title"><span class="settings-symbol"><i data-lucide="database"></i></span><div><strong>Moje dane</strong><span>Historia zapisana na tym urządzeniu</span></div></div>
+      <button class="settings-row" type="button" onclick="exportHistory()"><i data-lucide="download"></i><span>Eksportuj historię</span><i data-lucide="chevron-right"></i></button>
+      <button class="settings-row danger" type="button" onclick="wyczyscHistorie()"><i data-lucide="trash-2"></i><span>Usuń historię</span><i data-lucide="chevron-right"></i></button>
+    </div>
+    <div class="settings-footnote"><i data-lucide="shield-check"></i><span id="connection-status">Gemini obsługiwane przez bezpieczne API</span></div>
+    <p class="settings-privacy">Analizy służą wyłącznie jako wsparcie specjalisty. <a href="privacy.html" target="_blank" rel="noopener">Prywatność i wykorzystanie zdjęć</a></p>
   </div>
 </div>
 
@@ -813,9 +935,10 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible, inp
         <div class="topbar-title">TraceAI</div>
         <div class="topbar-sub">Asystent traseologiczny</div>
       </div>
-      <button class="avatar-btn" onclick="pokazModal()">
-        <i data-lucide="user"></i>
-      </button>
+      <div class="header-actions">
+        <button class="header-theme-btn" id="header-theme-btn" type="button" onclick="toggleThemeQuick()" aria-label="Przełącz motyw" title="Zmień motyw"><span id="header-theme-icon"><i data-lucide="moon"></i></span></button>
+        <button class="avatar-btn" type="button" onclick="pokazModal()" aria-label="Otwórz ustawienia"><i data-lucide="settings-2"></i></button>
+      </div>
     </div>
 
     <div class="score-section">
@@ -833,7 +956,7 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible, inp
         </div>
         <div class="score-info">
           <h3>Gotowy do pracy</h3>
-          <p>Sfotografuj ślad i uzyskaj profesjonalną analizę w terenie.</p>
+          <p>Dodaj zdjęcie śladu i uzyskaj jego wstępną analizę.</p>
           <div class="score-tags">
             <span class="tag tag-yellow">Analiza obuwia</span>
             <span class="tag tag-blue">Analiza opon</span>
@@ -849,26 +972,26 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible, inp
 
     <div class="actions-row">
       <button class="action-btn" onclick="goScan('Przeanalizuj ślad')">
-        <div class="action-icon" style="background: #FEF3C7;"><i data-lucide="camera"></i></div>
+        <div class="action-icon tone-yellow"><i data-lucide="camera"></i></div>
         <span>Skanuj</span>
       </button>
       <button class="action-btn" onclick="goScan('Porównaj dwa ślady')">
-        <div class="action-icon" style="background: #DBEAFE;"><i data-lucide="search"></i></div>
+        <div class="action-icon tone-blue"><i data-lucide="search"></i></div>
         <span>Porównaj</span>
       </button>
       <button class="action-btn" onclick="goScan('Opisz ślad do protokołu')">
-        <div class="action-icon" style="background: #D1FAE5;"><i data-lucide="file-text"></i></div>
+        <div class="action-icon tone-green"><i data-lucide="file-text"></i></div>
         <span>Protokół</span>
       </button>
       <button class="action-btn" onclick="goScan('Jak zabezpieczyć ten ślad?')">
-        <div class="action-icon" style="background: #FCE7F3;"><i data-lucide="flask-conical"></i></div>
+        <div class="action-icon tone-pink"><i data-lucide="flask-conical"></i></div>
         <span>Zabezpiecz</span>
       </button>
     </div>
 
     <div class="assistant-banner" id="banner">
       <div class="banner-label">Asystent AI</div>
-      <div class="banner-text">Wgraj zdjęcie śladu, żeby rozpocząć analizę kryminalistyczną.</div>
+      <div class="banner-text">Wgraj fotografię śladu, aby przeanalizować jego cechy i ograniczenia.</div>
       <button class="banner-btn" onclick="goScan('')">Rozpocznij analizę</button>
     </div>
 
@@ -948,8 +1071,8 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible, inp
     </div>
   </div>
 
-  <div class="turnstile-wrap" id="turnstile-wrap"><div id="turnstile-widget"></div><span id="turnstile-status">Weryfikacja bezpieczeństwa</span></div>
-  <div class="disclaimer">Wynik AI ma charakter pomocniczy i wymaga oceny specjalisty. Zdjęcia są przesyłane do usługi Gemini.</div>
+  <div id="turnstile-widget" class="turnstile-runtime" aria-hidden="true"></div>
+  <div class="disclaimer"><i data-lucide="info"></i><span>AI wspiera ocenę specjalisty · zdjęcia trafiają do Gemini</span></div>
   <div class="input-bar">
     <div class="input-wrap">
       <button class="cam-btn" onclick="document.getElementById('file-input').click()">
@@ -977,7 +1100,7 @@ button:focus-visible, [role="button"]:focus-visible, textarea:focus-visible, inp
   </div>
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=2.1"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initTurnstile&amp;render=explicit" async defer></script>
 </body>
 </html>

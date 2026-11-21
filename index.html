@@ -1185,6 +1185,25 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 .editor-panel .editor-tool[onclick="resetEditorView()"]{min-width:92px}
 .editor-panel .editor-tool svg{display:block;flex:none}
 @media(max-width:390px){#screen-scan .quick-prompts{padding-inline:14px}#case-current-line.visible{padding-inline:14px}#case-current-line .case-inline-actions button{font-size:12px}}
+
+/* TRACEAI 3.1.0 — one native vertical scroller for scan/compare on iOS */
+#screen-scan{height:100%;height:100dvh;min-width:0;min-height:0;overflow:hidden!important;display:none;flex-direction:column}
+#screen-scan.active{display:flex}
+#scan-content-scroll{min-height:0;flex:1 1 auto;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;touch-action:pan-y;scrollbar-width:thin;box-sizing:border-box;padding-bottom:14px}
+#screen-scan .scan-content-scroll>.topbar{position:relative;top:auto;flex-shrink:0}
+#screen-scan .scan-content-scroll>.upload-zone{flex-shrink:0}
+#screen-scan .scan-content-scroll>.quick-prompts{flex:0 0 auto;touch-action:pan-x;overscroll-behavior-x:contain}
+#screen-scan .scan-content-scroll>.result-scroll{flex:none!important;overflow:visible!important;height:auto!important;min-height:110px;padding:6px 20px 24px;scrollbar-width:auto}
+#screen-scan .scan-content-scroll>.result-scroll .scan-empty{padding:15px 8px;text-align:center}
+#screen-scan>.disclaimer,#screen-scan>.input-bar{flex:0 0 auto;min-width:0;position:relative}
+#screen-scan>.disclaimer{padding:7px 20px 5px;background:var(--bg)}
+#screen-scan>.input-bar{background:var(--bg);padding-bottom:max(13px,env(safe-area-inset-bottom))}
+#screen-editor,#screen-cases{min-height:0;overflow:hidden}
+#screen-editor .editor-body,#screen-cases .case-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;touch-action:pan-y}
+#screen-editor .editor-stage{touch-action:pan-y}
+#screen-editor .editor-stage canvas{touch-action:none}
+@media(max-width:380px){#screen-scan .scan-content-scroll>.result-scroll{padding-inline:15px}}
+
 </style>
 </head>
 <body>
@@ -1314,7 +1333,7 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 </div>
 
 <div class="screen" id="screen-scan">
-
+  <div class="scan-content-scroll" id="scan-content-scroll">
   <div class="topbar">
     <button class="back-btn" onclick="goHome()">← Wróć</button>
     <div style="font-weight:600; font-size:15px;" id="scan-title">Analiza śladu</div>
@@ -1356,6 +1375,7 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
     <div class="scan-empty">Wybierz zdjęcie i rozpocznij analizę.</div>
   </div>
 
+  </div><!-- /scan-content-scroll -->
   <div id="turnstile-widget" class="turnstile-runtime" aria-hidden="true"></div>
   <div class="disclaimer"><i data-lucide="info"></i><span>AI wspiera ocenę specjalisty · zdjęcia trafiają do Gemini</span></div>
   <div class="input-bar">
@@ -1447,7 +1467,7 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 
 <!-- TraceAI 3.0: image workspace, case files, PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" defer></script>
-<script src="app.js?v=3.0.11" defer></script>
+<script src="app.js?v=3.1.0" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initTurnstile&amp;render=explicit" async defer></script>
 </body>
 </html>

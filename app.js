@@ -136,7 +136,23 @@ function configured() {
 }
 function showConfigStatus() {
   const status=el('connection-status');
-  if(status) status.textContent = configured() ? 'Gemini obsługiwane przez bezpieczne API' : 'Połączenie z API wymaga konfiguracji administratora';
+  if(status) status.textContent = configured() ? 'Sprawdzanie połączenia z Gemini…' : 'Połączenie z API wymaga konfiguracji administratora';
+}
+async function checkBackendHealth(){
+  if(!configured())return false;
+  const status=el('connection-status');
+  try{
+    const url=CONFIG.API_ENDPOINT.replace(/\/analyze$/, '/health');
+    const response=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(10000)});
+    const body=await response.json();
+    if(!response.ok || body.status!=='configured')throw new Error('not configured');
+    if(status)status.textContent='Połączono z serwerem analizy Gemini';
+    return true;
+  }catch(error){
+    if(status)status.textContent='Nie można połączyć się z serwerem analizy';
+    console.warn('TraceAI API health check failed:',error.name);
+    return false;
+  }
 }
 let pendingVerification=null;
 window.initTurnstile = () => { turnstileReady=true; renderTurnstile(); };
@@ -446,7 +462,7 @@ async function wyslij() {
 }
 
 async function init() {
-  setTheme();showConfigStatus();iconRefresh();
+  setTheme();showConfigStatus();iconRefresh();checkBackendHealth();
   try{records=(await getAllRecords()).map(normalizeRecord).sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));}
   catch(e){console.warn('Historia niedostępna:',e);}
   try{cases=(await getAllCases()).filter(c=>c&&typeof c==='object'&&typeof c.id==='string');await migrateLegacyCases();}catch(e){console.warn('Sprawy niedostępne:',e);}
@@ -592,6 +608,10 @@ async function reportImage(data,annotations=[]){
 async function exportCasePdf(id) {
   const c=cases.find(x=>x?.id===id)||(activeCase?.id===id?activeCase:null);
   if(!c){alert('Wybierz sprawę, dla której chcesz przygotować raport.');return;}
+  // Reserve a tab during the user gesture, before asynchronous PDF generation.
+  // iOS Safari otherwise blocks window.open after the first await.
+  const preview=window.open('', '_blank');
+  if(preview){preview.document.title='TraceAI — przygotowywanie PDF';preview.document.body.textContent='Trwa przygotowywanie raportu PDF…';}
   let jspdf=window.jspdf?.jsPDF;
   if(!jspdf){
     for(const src of [
@@ -611,7 +631,7 @@ async function exportCasePdf(id) {
       }catch(e){console.warn('PDF CDN fallback:',e);}
     }
   }
-  if(!jspdf){alert('Nie udało się uruchomić generatora PDF. Spróbuj ponownie przy stabilnym połączeniu.');return;}
+  if(!jspdf){try{preview?.close()}catch(_e){}alert('Nie udało się uruchomić generatora PDF. Spróbuj ponownie przy stabilnym połączeniu.');return;}
   const filename='TraceAI-'+String(c.number||c.title||'raport').replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,55)+'.pdf';
   const pdf=new jspdf({orientation:'portrait',unit:'mm',format:'a4',compress:true});
   const pageW=210,pageH=297,margin=17,width=pageW-2*margin;
@@ -675,7 +695,7 @@ async function exportCasePdf(id) {
   for(let p=1;p<=total;p++){pdf.setPage(p);pdf.setFontSize(8);pdf.setTextColor(130);pdf.text('TraceAI | '+(c.number||'sprawa')+' | '+p+' / '+total,margin,pageH-9);}
   const url=URL.createObjectURL(pdf.output('blob'));
   // Open the actual PDF directly, without an intermediate preview modal.
-  const preview=window.open(url,'_blank');
+  if(preview)preview.location.replace(url);
   if(!preview){
     const link=document.createElement('a');
     link.href=url;link.target='_blank';link.rel='noopener';link.textContent='Otwórz wygenerowany raport PDF';
@@ -686,20 +706,6 @@ async function exportCasePdf(id) {
   }
   setTimeout(()=>URL.revokeObjectURL(url),300000);
   return;
-  const overlay=document.createElement('div');overlay.className='pdf-preview-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-label','Podglad raportu PDF');
-  const card=document.createElement('div');card.className='pdf-preview-card';
-  const header=document.createElement('div');header.className='pdf-preview-header';
-  const title=document.createElement('strong');title.textContent='Podgląd raportu PDF';
-  const actions=document.createElement('div');actions.className='pdf-preview-actions';
-  const open=document.createElement('a');open.href=url;open.target='_blank';open.rel='noopener';open.textContent='Otwórz PDF';
-  const download=document.createElement('a');download.href=url;download.download=filename;download.textContent='Zapisz PDF';
-  const close=document.createElement('button');close.type='button';close.textContent='Zamknij';
-  const cleanup=()=>{overlay.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)};
-  close.onclick=cleanup;overlay.addEventListener('click',e=>{if(e.target===overlay)cleanup()});
-  actions.append(open,download,close);header.append(title,actions);
-  const frame=document.createElement('iframe');frame.className='pdf-preview-frame';frame.title='Podglad PDF';frame.src=url;
-  const hint=document.createElement('p');hint.className='pdf-preview-help';hint.textContent='Na iPhonie użyj „Otwórz PDF”, a następnie Udostępnij → Zapisz w Plikach. Dokument nie otwiera już okna drukowania.';
-  card.append(header,frame,hint);overlay.appendChild(card);document.body.appendChild(overlay);
 }
 
 init();

@@ -87,8 +87,40 @@ function countWord(n) {
   return 'analiz';
 }
 function escapeHTML(s) { return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-function formatText(t) {
-  return escapeHTML(t).replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g,'<br>');
+function formatText(input) {
+  // Small, safe Markdown renderer: block structure first, HTML escaping for all text.
+  // Never place model-generated HTML directly in the DOM.
+  const src=String(input??'').replace(/\r\n?/g,'\n').trim();
+  if(!src)return '';
+  const inline=(value)=>escapeHTML(value)
+    .replace(/\`([^\`]+)\`/g,'<code>$1</code>')
+    .replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');
+  let out=[], para=[], listType=null;
+  const flushPara=()=>{if(para.length){out.push('<p>'+para.map(inline).join('<br>')+'</p>');para=[];}};
+  const endList=()=>{if(listType){out.push('</'+listType+'>');listType=null;}};
+  for(const raw of src.split('\n')){
+    const line=raw.trim();
+    if(!line){flushPara();endList();continue;}
+    const head=/^(#{1,6})\s+(.+)$/.exec(line);
+    if(head){
+      flushPara();endList();
+      const tag=head[1].length<=3?'h4':'h5';
+      out.push('<'+tag+' class="ai-heading '+(tag==='h4'?'ai-heading-main':'ai-heading-section')+'">'+inline(head[2])+'</'+tag+'>');
+      continue;
+    }
+    const bullet=/^[-*•]\s+(.+)$/.exec(line);
+    const numbered=/^\d+[.)]\s+(.+)$/.exec(line);
+    if(bullet||numbered){
+      flushPara();
+      const type=numbered?'ol':'ul';
+      if(listType!==type){endList();out.push('<'+type+'>');listType=type;}
+      out.push('<li>'+inline((bullet||numbered)[1])+'</li>');
+      continue;
+    }
+    endList();para.push(line);
+  }
+  flushPara();endList();return out.join('');
 }
 function extractTitle(text) {
   const line = String(text || '').split(/\r?\n/).map(x=>x.replace(/^#+\s*/,'').replace(/\*\*/g,'').trim()).find(x=>x.length>3 && x.length<90 && !x.endsWith(':'));
@@ -322,7 +354,7 @@ function createHistoryCard(r,small=false) {
       preview.alt='Zdjęcie śladu';preview.style.cssText='width:100%;max-height:190px;object-fit:contain;border-radius:12px;margin:0 0 10px;background:var(--bg)';
       btn.appendChild(preview);
     }
-    const d=document.createElement('p');d.className='answer';d.innerHTML=formatText(r.reply);btn.appendChild(d);
+    const d=document.createElement('div');d.className='answer ai-prose';d.innerHTML=formatText(r.reply);btn.appendChild(d);
     const print=document.createElement('button');print.className='report-btn';print.textContent='Wydrukuj / zapisz PDF';print.onclick=()=>printReport(r);btn.appendChild(print);
   }
   return btn;
@@ -419,7 +451,7 @@ function renderWiadomosc(tekst,rola='ai') {
     card.lastElementChild.textContent=normalized;
   }else{
     const heading=document.createElement('h3');heading.textContent=rola==='user'?'Twoje pytanie':'Analiza AI';
-    const body=document.createElement('p');body.className='answer';body.innerHTML=formatText(normalized);
+    const body=document.createElement('div');body.className='answer ai-prose';body.innerHTML=formatText(normalized);
     card.append(heading,body);
   }
   area.appendChild(card);
@@ -605,6 +637,26 @@ async function reportImage(data,annotations=[]){
   }catch(e){console.warn('Nie można przygotować obrazu do raportu',e);return null;}
 }
 
+async function preparePolishPdfFonts(pdf) {
+  // Locally hosted SIL Open Font License typefaces; no dependency on third-party CDNs.
+  const faces=[
+    {file:'Lato-Regular.ttf',path:'assets/fonts/Lato-Regular.base64.txt',style:'normal'},
+    {file:'Lato-Bold.ttf',path:'assets/fonts/Lato-Bold.base64.txt',style:'bold'}
+  ];
+  const fontBytes=await Promise.all(faces.map(async face=>{
+    const response=await fetch(new URL(face.path,document.baseURI),{cache:'force-cache'});
+    if(!response.ok)throw new Error('Brak pliku czcionki PDF: '+face.style);
+    const raw=(await response.text()).replace(/\s/g,'');
+    if(raw.length<100000||!/^[A-Za-z0-9+/]+=*$/.test(raw))throw new Error('Nieprawidłowy plik czcionki PDF');
+    return raw;
+  }));
+  faces.forEach((face,i)=>{
+    pdf.addFileToVFS(face.file,fontBytes[i]);
+    pdf.addFont(face.file,'Lato',face.style);
+  });
+  pdf.setFont('Lato','normal');
+}
+
 async function exportCasePdf(id) {
   const c=cases.find(x=>x?.id===id)||(activeCase?.id===id?activeCase:null);
   if(!c){alert('Wybierz sprawę, dla której chcesz przygotować raport.');return;}
@@ -634,13 +686,15 @@ async function exportCasePdf(id) {
   if(!jspdf){try{preview?.close()}catch(_e){}alert('Nie udało się uruchomić generatora PDF. Spróbuj ponownie przy stabilnym połączeniu.');return;}
   const filename='TraceAI-'+String(c.number||c.title||'raport').replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,55)+'.pdf';
   const pdf=new jspdf({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+  try{await preparePolishPdfFonts(pdf)}catch(error){try{preview?.close()}catch(_e){}alert('Nie udało się przygotować polskich znaków w raporcie PDF. Spróbuj ponownie po odświeżeniu strony.');console.warn('PDF font error:',error.message);return;}
+  pdf.setProperties({title:'TraceAI - raport sprawy',subject:'Pomocniczy raport analizy traseologicznej',creator:'TraceAI'});
   const pageW=210,pageH=297,margin=17,width=pageW-2*margin;
   let y=21;
   const nextPage=(needed=12)=>{if(y+needed>pageH-18){pdf.addPage();y=22;}};
   const lines=(value,maxWidth=width)=>pdf.splitTextToSize(String(value??''),maxWidth);
   const addText=(value,{size=10,weight='normal',gap=5,leading=5,color=[35,41,52]}={})=>{
-    pdf.setFont('helvetica',weight);pdf.setFontSize(size);pdf.setTextColor(...color);
-    const chunks=lines(String(value).normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E\n]/g,ch=>({'ł':'l','Ł':'L','—':'-','–':'-','•':'-','„':'"','”':'"','’':"'",'°':' deg'}[ch]||'?')));
+    pdf.setFont('Lato',weight==='bold'?'bold':'normal');pdf.setFontSize(size);pdf.setTextColor(...color);
+    const chunks=lines(String(value??'').replace(/\r\n?/g,'\n'));
     for(const line of chunks){nextPage(leading);pdf.text(line,margin,y);y+=leading;}
     y+=gap;
   };

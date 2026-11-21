@@ -1204,6 +1204,35 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 #screen-editor .editor-stage canvas{touch-action:none}
 @media(max-width:380px){#screen-scan .scan-content-scroll>.result-scroll{padding-inline:15px}}
 
+
+/* TraceAI 3.2 — home scrolling and readable structured AI responses */
+#screen-home{height:100dvh!important;min-height:0!important;overflow:hidden!important;flex-direction:column!important}
+#screen-home.active{display:flex!important}
+#screen-home>.home-content-scroll{
+  flex:1 1 0!important;min-height:0!important;max-height:none!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;touch-action:pan-y;
+  box-sizing:border-box!important;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))!important
+}
+#screen-home>.bottom-nav{
+  position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  transform:none!important;flex:0 0 78px!important;align-self:stretch!important;
+  width:100%!important;max-width:100%!important;height:78px!important;min-height:78px!important;
+  z-index:10!important;background:var(--bg)!important;box-sizing:border-box!important
+}
+#screen-home .recent-scroll{padding-bottom:32px!important}
+.result-card .ai-prose{display:block;overflow-wrap:anywhere;font-size:14px;line-height:1.65;color:var(--text)}
+.result-card .ai-prose .ai-heading-main{font:700 18px/1.35 var(--sans);color:var(--text);letter-spacing:-.02em;text-transform:none;margin:17px 0 10px}
+.result-card .ai-prose .ai-heading-section{font:650 15px/1.4 var(--sans);color:var(--text);text-transform:none;margin:15px 0 7px}
+.result-card .ai-prose .ai-heading:first-child{margin-top:0}
+.result-card .ai-prose p{margin:0 0 11px;font-size:14px;line-height:1.7;color:var(--text)}
+.result-card .ai-prose p:last-child{margin-bottom:0}
+.result-card .ai-prose ul,.result-card .ai-prose ol{margin:5px 0 14px;padding-left:23px;list-style-position:outside}
+.result-card .ai-prose li{padding-left:2px;margin:0 0 6px;line-height:1.55}
+.result-card .ai-prose li::marker{color:var(--text2)}
+.result-card .ai-prose strong{font-weight:700}
+.result-card .ai-prose code{font:500 .9em ui-monospace,SFMono-Regular,monospace;background:var(--bg);border-radius:5px;padding:2px 4px}
+
 </style>
 </head>
 <body>
@@ -1467,7 +1496,7 @@ button,select,input,textarea{font-family:var(--sans);-webkit-tap-highlight-color
 
 <!-- TraceAI 3.0: image workspace, case files, PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" defer></script>
-<script src="app.js?v=3.1.2" defer></script>
+<script src="app.js?v=3.2.0" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initTurnstile&amp;render=explicit" async defer></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 /* Public configuration. Set these two public values before publishing.
    NEVER put the Gemini key or Turnstile secret in this file. */
 const CONFIG = {
-  API_ENDPOINT: 'https://traceai-api.traceai-lopatka915.workers.dev/analyze',
+  API_ENDPOINT: 'https://traceai-api.piotreekq.workers.dev/analyze',
   TURNSTILE_SITE_KEY: '0x4AAAAAAFdcvOyuN3zh5tVh',
 };
 
@@ -178,7 +178,10 @@ function resetTurnstile() {
   if(window.turnstile&&turnstileWidgetId!==null){try{window.turnstile.reset(turnstileWidgetId)}catch(_e){}}
 }
 function showScreen(id) {
+  const previous=document.querySelector('.screen.active')?.id;
   document.querySelectorAll('.screen').forEach(e=>e.classList.toggle('active',e.id===id));
+  if(id==='screen-scan'&&previous!==id){const sc=el('scan-content-scroll');if(sc)sc.scrollTop=0;}
+  if(id==='screen-editor'&&previous!==id){const sc=document.querySelector('#screen-editor .editor-body');if(sc)sc.scrollTop=0;}
 }
 function modeFromText(p) {
   const s=String(p||'').toLowerCase();
@@ -403,12 +406,14 @@ function renderWiadomosc(tekst,rola='ai') {
     const body=document.createElement('p');body.className='answer';body.innerHTML=formatText(normalized);
     card.append(heading,body);
   }
-  area.appendChild(card);area.scrollTop=area.scrollHeight;
+  area.appendChild(card);
+  const scanScroller=el('scan-content-scroll');
+  if(scanScroller)requestAnimationFrame(()=>{scanScroller.scrollTop=scanScroller.scrollHeight;});
   return card;
 }
 function typing(active) {
   el('typing')?.remove();
-  if(active){const d=document.createElement('div');d.className='typing-card';d.id='typing';d.textContent='Przygotowuję analizę zdjęcia…';el('result-area').appendChild(d);}
+  if(active){const d=document.createElement('div');d.className='typing-card';d.id='typing';d.textContent='Przygotowuję analizę zdjęcia…';el('result-area').appendChild(d);const sc=el('scan-content-scroll');if(sc)requestAnimationFrame(()=>sc.scrollTop=sc.scrollHeight);}
 }
 function quickSend(t) {el('msg-input').value=t;autoResize(el('msg-input')); if(currentImages[0] && (currentMode!=='porownanie'||currentImages[1]))wyslij();else {renderWiadomosc('Najpierw dodaj '+(currentMode==='porownanie'?'oba zdjęcia.':'zdjęcie śladu.'),'error');el('file-input').focus();}}
 function autoResize(element) {element.style.height='auto';element.style.height=Math.min(element.scrollHeight,80)+'px';}
@@ -425,7 +430,7 @@ async function wyslij() {
   const imagePayload=currentImages.slice(0,currentMode==='porownanie'?2:1);
   try {
     const verifiedToken=await verifyInBackground();
-    const response=await fetch(CONFIG.API_ENDPOINT, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:currentMode,text:(aiLengthPreference==='short'?'Odpowiedz zwięźle, maksymalnie 5 krótkich punktów. ':aiLengthPreference==='long'?'Odpowiedz szczegółowo: obserwacje, cechy, ograniczenia i wnioski. ':'')+text,images:imagePayload,conversation:prior,turnstileToken:verifiedToken})});
+    const response=await fetch(CONFIG.API_ENDPOINT, {method:'POST',headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(65000),body:JSON.stringify({mode:currentMode,text:(aiLengthPreference==='short'?'Odpowiedz zwięźle, maksymalnie 5 krótkich punktów. ':aiLengthPreference==='long'?'Odpowiedz szczegółowo: obserwacje, cechy, ograniczenia i wnioski. ':'')+text,images:imagePayload,conversation:prior,turnstileToken:verifiedToken})});
     const result=await response.json().catch(()=>({error:'Nieprawidłowa odpowiedź serwera.'}));
     if(!response.ok || !result.reply)throw Error(result.error||'Nie udało się wykonać analizy.');
     typing(false);
@@ -436,7 +441,7 @@ async function wyslij() {
     const card=renderWiadomosc(result.reply);
     const button=document.createElement('button');button.className='report-btn';button.textContent='Wydrukuj / zapisz PDF';button.onclick=()=>printReport(r);card.appendChild(button);
     el('msg-input').value='';autoResize(el('msg-input'));renderRecentFromHistory();
-  } catch(e){typing(false);renderWiadomosc('⚠️ '+(e.message||'Błąd połączenia.'),'error');}
+  } catch(e){typing(false);const message=e instanceof TypeError ? 'Brak połączenia z serwerem analizy. Sprawdź internet i spróbuj ponownie.' : e?.name==='TimeoutError' ? 'Analiza przekroczyła limit czasu. Spróbuj ponownie.' : (e.message||'Błąd połączenia.');renderWiadomosc(message,'error');}
   finally{busy=false;el('send-btn').disabled=false;resetTurnstile();}
 }
 

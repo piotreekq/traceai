@@ -611,7 +611,7 @@ async function exportCasePdf(id) {
   // Reserve a tab during the user gesture, before asynchronous PDF generation.
   // iOS Safari otherwise blocks window.open after the first await.
   const preview=window.open('', '_blank');
-  if(preview){preview.document.title='TraceAI — przygotowywanie PDF';preview.document.body.textContent='Trwa przygotowywanie raportu PDF…';}
+  if(preview){try{preview.document.title='TraceAI — przygotowywanie PDF';if(preview.document.body)preview.document.body.textContent='Trwa przygotowywanie raportu PDF…';}catch(_e){/* Safari may restrict initial tab document access. */}}
   let jspdf=window.jspdf?.jsPDF;
   if(!jspdf){
     for(const src of [
